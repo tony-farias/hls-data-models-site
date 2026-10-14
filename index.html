@@ -46,7 +46,7 @@
   .eyebrow { text-transform: uppercase; letter-spacing: 0.16em; font-size: 11px; font-weight: 700; color: var(--accent); }
   h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.015em; margin: 6px 0 2px; }
   .sub { font-size: 13px; color: var(--ink-2); font-family: "SF Mono", Menlo, Consolas, monospace; }
-  nav.tabs { display: flex; gap: 4px; margin-top: 16px; }
+  nav.tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 16px; }
   nav.tabs button {
     appearance: none; border: 1px solid var(--line); border-bottom: none; background: var(--bg);
     color: var(--ink-2); font: inherit; font-size: 13.5px; font-weight: 600;
@@ -58,6 +58,17 @@
   nav.tabs button .tablogo { margin-right: 7px; vertical-align: -2px; }
   nav.tabs button .vlogo { margin-right: 7px; color: #FF7A00; font-weight: 800; font-size: 12.5px; letter-spacing: -0.04em; }
   nav.tabs button.active { color: var(--accent); }
+  nav.tabs button.featured {
+    background: #0071CE; border-color: #0071CE; color: #fff; font-weight: 800;
+    box-shadow: 0 4px 12px rgba(0, 113, 206, 0.22);
+  }
+  nav.tabs button.featured.active { background: #005A9E; color: #fff; }
+  .skill-download {
+    display: inline-flex; align-items: center; gap: 7px; margin-left: auto; padding: 9px 14px;
+    border-radius: 8px; background: #0071CE; color: #fff; font-size: 13px; font-weight: 800;
+    text-decoration: none; white-space: nowrap;
+  }
+  .skill-download:hover { background: #005A9E; }
   .erd-jump-wrap { margin-left: auto; align-self: center; padding-bottom: 8px; display: inline-flex; align-items: center; gap: 8px; }
   .erd-jump-wrap label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-3); }
   #erd-jump {
@@ -195,12 +206,13 @@
 
 <header>
   <div class="header-top">
-    <img class="genieflow-logo" src="genieflow-logo.png" alt="GenieFlow">
+    <img class="genieflow-logo" src="genieflow-logo.png" alt="HLS-GenieFlow">
     <div class="brandbar">
       <svg class="dbx-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#FF3621" d="M.95 14.184L12 20.403l9.919-5.55v2.21L12 22.662l-10.484-5.96-.565.308v.77L12 24l11.05-6.218v-4.317l-.515-.309L12 19.118l-9.867-5.653v-2.21L12 16.805l11.05-6.218V6.32l-.515-.308L12 11.974 2.647 6.681 12 1.388l7.76 4.368.668-.411v-.566L12 0 .95 6.27v.72L12 13.207l9.919-5.55v2.26L12 15.52 1.516 9.56l-.565.308Z"/></svg>
       <span class="dbx-word">Databricks</span>
     </div>
   </div>
+  <div class="eyebrow">Industry Data Models</div>
   <h1>Health and Life Sciences Data Models</h1>
   <div class="ind-switch" id="ind-switch" role="tablist" aria-label="Industry view">
     <button type="button" data-ind="hls" class="active" aria-selected="true">HLS</button>
@@ -220,8 +232,23 @@
 </div>
 
 <script>
-const UC_ORG = "";
-const ucUrlFor = (base, t) => base ? base + encodeURIComponent(t) : null;
+const APP_CFG = window.HLS_DATA_MODEL_CONFIG || {};
+const UC_ORG = APP_CFG.orgId || "";
+const modelCfg = (key) => (APP_CFG.models || {})[key] || {};
+const catalogBase = (key) => {
+  const c = modelCfg(key);
+  const workspaceUrl = c.workspaceUrl || APP_CFG.workspaceUrl;
+  if (!workspaceUrl || !c.catalog || !c.schema) return "#";
+  return workspaceUrl.replace(/\/$/, "") + "/explore/data/" +
+    encodeURIComponent(c.catalog) + "/" + encodeURIComponent(c.schema) + "/";
+};
+const orgIdFor = (key) => modelCfg(key).orgId || UC_ORG;
+const schemaLabel = (key, fallback) => {
+  const c = modelCfg(key);
+  return c.catalog && c.schema ? c.catalog + ".`" + c.schema + "`" : fallback;
+};
+const ucUrlFor = (base, t, orgId = UC_ORG) => base === "#" ? "#" :
+  base + encodeURIComponent(t) + (orgId ? "?o=" + encodeURIComponent(orgId) : "");
 
 mermaid.initialize({
   startOnLoad: false,
@@ -239,14 +266,14 @@ mermaid.initialize({
 
 // make every entity box in a rendered mermaid SVG link to its UC table
 function makeEntitiesClickable(container, model) {
-  if (!model.ucBase) return;
+  if (!(model.ucBase && model.ucBase !== "#")) return;
   container.querySelectorAll('g[id^="entity-"]').forEach((g) => {
     const label = g.querySelector("text");
     if (!label) return;
     const name = label.textContent.trim();
     if (!model.data.tables[name]) return;
     g.classList.add("uc-link");
-    g.addEventListener("click", () => window.open(ucUrlFor(model.ucBase, name), "_blank"));
+    g.addEventListener("click", () => window.open(ucUrlFor(model.ucBase, name, model.ucOrg), "_blank"));
     const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
     title.textContent = "Open " + name + " reference";
     g.appendChild(title);
@@ -294,12 +321,37 @@ const NS_ACCENT = "#C74634", NS_ACCENT_BG = "#FBEAE7";  // Oracle Redwood red
 const NS_LOGO = '<span class="tablogo" style="color:#C74634;font-weight:800;font-size:12.5px;letter-spacing:-0.03em;" aria-hidden="true">NetSuite</span>';
 const HEDIS_ACCENT = "#0E9C8A", HEDIS_ACCENT_BG = "#E4F6F3";  // HLS teal (mixed-source model)
 const HEDIS_LOGO = '<span class="tablogo" style="color:#0E9C8A;font-weight:800;font-size:12.5px;letter-spacing:-0.02em;" aria-hidden="true">HEDIS</span>';
+const SCINTILLA_ACCENT = "#0071CE", SCINTILLA_ACCENT_BG = "#E6F2FA";
+const SCINTILLA_LOGO = '<span class="tablogo" style="color:#0071CE;font-weight:800;font-size:12px;letter-spacing:-0.03em;" aria-hidden="true">Walmart</span>';
 function brandOf(m) {
   if (m.source === "salesforce") return { accent: SF_ACCENT, bg: SF_ACCENT_BG, logo: SF_LOGO };
   if (m.source === "netsuite")   return { accent: NS_ACCENT, bg: NS_ACCENT_BG, logo: NS_LOGO };
   if (m.source === "hedis")      return { accent: HEDIS_ACCENT, bg: HEDIS_ACCENT_BG, logo: HEDIS_LOGO };
+  if (m.source === "scintilla")  return { accent: SCINTILLA_ACCENT, bg: SCINTILLA_ACCENT_BG, logo: SCINTILLA_LOGO };
   return { accent: VEEVA_ACCENT, bg: VEEVA_ACCENT_BG, logo: VEEVA_LOGO };
 }
+
+// Consolidated source footprint for recreating the Monday Morning retail app.
+const SCINTILLA_MONDAY_MORNING = (() => {
+  const parts = [SCINTILLA_SALES_DEMAND, SCINTILLA_INVENTORY, SCINTILLA_ASSORTMENT,
+    SCINTILLA_SUPPLY_CHAIN, SCINTILLA_FORECASTING, SCINTILLA_ECOMMERCE, SCINTILLA_PRICING_FUNDING];
+  const tables = Object.assign({}, ...parts.map((p) => p.tables));
+  const domains = parts.flatMap((p) => p.domains).map((d) => ({
+    ...d,
+    blurb: d.blurb + " Included in the Monday Morning deployment skill, which inventories licensed feeds before enabling this capability."
+  }));
+  return {
+    domains, tables, hubRefs: {},
+    totals: { tables: Object.keys(tables).length, edges: domains.reduce((n, d) => n + d.edges, 0) }
+  };
+})();
+
+const SKILL_BASE = "https://github.com/tony-farias/genie-code-templates/tree/main/skills/";
+const SKILL_FOR = (m) => SKILL_BASE + (
+  m.source === "salesforce" ? "genie-creation-skills/health-cloud-benefits" :
+  m.source === "hedis" ? "lakeflow-connect-skills/hedis-file-ingestion" :
+  m.source === "scintilla" ? "app-skills/deploy-monday-morning-scintilla" :
+  "genie-creation-skills/create-genie-space");
 
 // ---- model registry: one tab per data model ----
 const MODELS = [
@@ -307,37 +359,37 @@ const MODELS = [
     tabId: "tab-commercial",
     tabLabel: "Commercial CRM",
     data: VEEVA836,
-    ucBase: null,
-    schemaLabel: "veeva836",
+    ucBase: catalogBase("commercial"),
+    schemaLabel: schemaLabel("commercial", "Configure commercial catalog/schema in config.js"),
     example: "call2, em_event"
   },
   {
     tabId: "tab-safety",
     tabLabel: "Safety · Pharmacovigilance",
     data: SAFETYVAULT,
-    ucBase: null,
-    schemaLabel: "safety-vault",
+    ucBase: catalogBase("safety"),
+    schemaLabel: schemaLabel("safety", "Configure safety catalog/schema in config.js"),
     example: "case_adverse_event, product",
     // domains with a live Genie space — button opens it instead of the mock
-    genieByDomain: {}
+    genieByDomain: modelCfg("safety").genieByDomain || {}
   },
   {
     tabId: "tab-quality",
     tabLabel: "Quality · QMS",
     data: QMSVEEVA,
-    ucBase: null,
-    schemaLabel: "quality-qms-veeva",
+    ucBase: catalogBase("quality"),
+    schemaLabel: schemaLabel("quality", "Configure quality catalog/schema in config.js"),
     example: "quality_event, capa, change_control"
   },
   {
     tabId: "tab-clinical",
     tabLabel: "Clinical · CTMS",
     data: CTMSVEEVA,
-    ucBase: null,
-    schemaLabel: "clinical-ctms-veeva",
+    ucBase: catalogBase("clinical"),
+    schemaLabel: schemaLabel("clinical", "Configure clinical catalog/schema in config.js"),
     example: "study__v, site__v, monitoring_event__ctms",
     // domains with a live Genie space — button opens it instead of the mock
-    genieByDomain: {}
+    genieByDomain: modelCfg("clinical").genieByDomain || {}
   },
   {
     tabId: "tab-patient-services",
@@ -349,15 +401,15 @@ const MODELS = [
     schemaLabel: "salesforce_health_cloud.benefits_verification (mock)",
     example: "MemberPlan, CoverageBenefit, CareBenefitVerifyRequest",
     // domains with a live Genie space — button opens it instead of the mock
-    genieByDomain: {}
+    genieByDomain: modelCfg("patientServices").genieByDomain || {}
   },
   {
     tabId: "tab-netsuite",
     tabLabel: "Finance · NetSuite Accounting",
     data: NETSUITE_GTN,
     source: "netsuite",
-    ucBase: null,
-    schemaLabel: "netsuite",
+    ucBase: catalogBase("netsuite"),
+    schemaLabel: schemaLabel("netsuite", "Configure NetSuite catalog/schema in config.js"),
     example: "transactions, revenue_plans, amortization_schedules"
   },
   {
@@ -372,6 +424,50 @@ const MODELS = [
     // Ingestion demo lives in demos/hedis-quality/ (Auto Loader files + Data Cloud dims).
     // Optional: wire a Genie space per domain here once created.
     genieByDomain: {}
+  },
+  {
+    tabId: "tab-cpg-sales", tabLabel: "Sales & Demand", data: SCINTILLA_SALES_DEMAND,
+    industry: "cpg", source: "scintilla", ucBase: catalogBase("scintilla"), ucOrg: orgIdFor("scintilla"),
+    schemaLabel: schemaLabel("scintilla", "Configure Scintilla catalog/schema in config.js"), example: "store_sales, omni_sales"
+  },
+  {
+    tabId: "tab-cpg-inventory", tabLabel: "Inventory & Availability", data: SCINTILLA_INVENTORY,
+    industry: "cpg", source: "scintilla", ucBase: catalogBase("scintilla"), ucOrg: orgIdFor("scintilla"),
+    schemaLabel: schemaLabel("scintilla", "Configure Scintilla catalog/schema in config.js"), example: "store_invt, oos_root_cause"
+  },
+  {
+    tabId: "tab-cpg-assortment", tabLabel: "Item, Store & Assortment", data: SCINTILLA_ASSORTMENT,
+    industry: "cpg", source: "scintilla", ucBase: catalogBase("scintilla"), ucOrg: orgIdFor("scintilla"),
+    schemaLabel: schemaLabel("scintilla", "Configure Scintilla catalog/schema in config.js"), example: "item_dim, modular_plan"
+  },
+  {
+    tabId: "tab-cpg-supply-chain", tabLabel: "Supply Chain", data: SCINTILLA_SUPPLY_CHAIN,
+    industry: "cpg", source: "scintilla", ucBase: catalogBase("scintilla"), ucOrg: orgIdFor("scintilla"),
+    schemaLabel: schemaLabel("scintilla", "Configure Scintilla catalog/schema in config.js"), example: "purchase_order, omni_otif"
+  },
+  {
+    tabId: "tab-cpg-forecasting", tabLabel: "Forecasting", data: SCINTILLA_FORECASTING,
+    industry: "cpg", source: "scintilla", ucBase: catalogBase("scintilla"), ucOrg: orgIdFor("scintilla"),
+    schemaLabel: schemaLabel("scintilla", "Configure Scintilla catalog/schema in config.js"), example: "dly_dmnd_fcst, store_demand_forecast"
+  },
+  {
+    tabId: "tab-cpg-ecommerce", tabLabel: "E-commerce", data: SCINTILLA_ECOMMERCE,
+    industry: "cpg", source: "scintilla", ucBase: catalogBase("scintilla"), ucOrg: orgIdFor("scintilla"),
+    schemaLabel: schemaLabel("scintilla", "Configure Scintilla catalog/schema in config.js"), example: "ecom_invt, digital_transactability"
+  },
+  {
+    tabId: "tab-cpg-pricing", tabLabel: "Pricing & Funding", data: SCINTILLA_PRICING_FUNDING,
+    industry: "cpg", source: "scintilla", ucBase: catalogBase("scintilla"), ucOrg: orgIdFor("scintilla"),
+    schemaLabel: schemaLabel("scintilla", "Configure Scintilla catalog/schema in config.js"), example: "sku_mumd, coops"
+  },
+  {
+    tabId: "tab-cpg-monday-morning", tabLabel: "Monday Morning App", data: SCINTILLA_MONDAY_MORNING,
+    industry: "cpg", source: "scintilla", ucBase: catalogBase("scintilla"), ucOrg: orgIdFor("scintilla"),
+    schemaLabel: schemaLabel("scintilla", "Configure Scintilla catalog/schema in config.js"),
+    example: "store_sales, store_invt, dly_dmnd_fcst",
+    skillDownload: SKILL_BASE + "app-skills/deploy-monday-morning-scintilla",
+    genieByDomain: Object.fromEntries(SCINTILLA_MONDAY_MORNING.domains.map((d) =>
+      [d.name, null]))
   }
 ];
 
@@ -385,9 +481,10 @@ function buildTab(model, isFirst) {
     '<div class="toolbar">' +
       '<input type="search" class="search" placeholder="Filter ' + D.totals.tables + ' tables… (e.g. ' + model.example + ')" autocomplete="off" />' +
       '<span class="count search-count"></span><span class="toc"></span>' +
+      (model.skillDownload ? '<a class="skill-download" href="' + model.skillDownload + '" target="_blank" rel="noopener">✦ Get Monday Morning Skill</a>' : '') +
     '</div>' +
     '<div class="legend">' +
-      '<span class="item"><span class="swatch" style="background: oklch(0.80 0.10 300);"></span> Schema table' + (model.ucBase ? ', click to open its reference docs' : '') + '</span>' +
+      '<span class="item"><span class="swatch" style="background: oklch(0.80 0.10 300);"></span> Schema table' + ((model.ucBase && model.ucBase !== "#") ? ', click to open its reference docs' : '') + '</span>' +
     '</div>' +
     '<details class="idx"><summary>All tables <span class="hint">— expand for the full index</span></summary>' +
       '<div class="index-grid"></div></details>' +
@@ -400,6 +497,10 @@ function buildTab(model, isFirst) {
       : model.source === "netsuite"
       ? 'These relationships follow the official SuiteAnalytics Connect business models for Revenue Recognition, ' +
         'Invoice with Amortization, Expense Amortization and General Accounting.'
+      : model.source === "scintilla"
+      ? 'These models use Walmart Scintilla US Cloud Feeds metadata. ' +
+        'Relationships are curated logical joins and are shown only when the join column exists on both tables. ' +
+        'Validate join grain and supplier-specific feed entitlements before production use.'
       : 'Relationships are inferred from Veeva naming conventions: a column named ' +
         '<code>foo__v</code> on table <code>bar__v</code> is treated as a reference to table <code>foo__v</code> when that ' +
         'table exists in the schema. Edge labels name the referencing column. Audit columns (<code>created_by__v</code>, ' +
@@ -421,7 +522,7 @@ function buildTab(model, isFirst) {
   const grid = main.querySelector(".index-grid");
   Object.keys(D.tables).sort().forEach((t) => {
     const a = document.createElement("a");
-    a.className = "chip"; if (model.ucBase) { a.href = ucUrlFor(model.ucBase, t); a.target = "_blank"; } a.dataset.name = t;
+    a.className = "chip"; if (model.ucBase && model.ucBase !== "#") { a.href = ucUrlFor(model.ucBase, t, model.ucOrg); a.target = "_blank"; } a.dataset.name = t;
     a.innerHTML = "<span>" + t + "</span><span class='meta'>" + D.tables[t].cols + " cols</span>";
     grid.appendChild(a);
   });
@@ -468,13 +569,14 @@ function buildTab(model, isFirst) {
           "<span class='dmeta'>" + d.tables.length + " tables · " + d.edges + " rel" +
           (d.ghosts.length ? " · " + d.ghosts.length + " refs" : "") + "</span>" +
         "</button>" +
+        '<button class="genie">' + GENIE_SVG + "Get Genie Skill</button>" +
       "</div>" +
       '<div class="dbody" id="' + bodyId + '" role="region" aria-label="' + d.name + ' diagram" hidden>' +
-        '<div class="erd-hint">Every box is a table.' + (model.ucBase ? ' Click any box to open its reference docs.' : '') + '</div>' +
+        '<div class="erd-hint">Every box is a table.' + ((model.ucBase && model.ucBase !== "#") ? ' Click any box to open its reference docs.' : '') + '</div>' +
         '<div class="diagram-wrap"><div class="placeholder">Rendering…</div></div>' +
       "</div>";
-    sec.querySelector("button.genie")?.addEventListener("click", () =>
-      genieUrl ? window.open(genieUrl, "_blank") : openGenieMock(d.name));
+    sec.querySelector("button.genie").addEventListener("click", () =>
+      window.open(SKILL_FOR(model), "_blank", "noopener"));
     sec.querySelector("button.dbar").addEventListener("click",
       () => setSectionOpen(sec, !sec.classList.contains("open")));
     sec._model = model;
@@ -547,6 +649,7 @@ MODELS.forEach((m, idx) => {
   btn.style.setProperty("--accent", b.accent);
   btn.innerHTML = b.logo + "<span>" + m.tabLabel + " — " + m.data.totals.tables + " tables</span>";
   if (idx === 0) btn.classList.add("active");
+  if (m.skillDownload) btn.classList.add("featured");
   btn.addEventListener("click", () => activateTab(m.tabId));
   tabsNav.insertBefore(btn, jumpWrap);
   tabsContainer.appendChild(buildTab(m, idx === 0));
@@ -622,9 +725,11 @@ setTimeout(async () => {
   const setupTab = params.get('tab') || params.get('setup');
 
   if (!setupTab) return; // No setup needed
-  if (!MODELS || !MODELS.some(m => m.tabId === setupTab)) return; // Invalid tab
+  const setupModel = MODELS && MODELS.find(m => m.tabId === setupTab);
+  if (!setupModel) return; // Invalid tab
 
   try {
+    applyIndustry(setupModel.industry || "hls");
     // Activate the requested tab
     activateTab(setupTab);
     await new Promise(r => setTimeout(r, 1000)); // Wait for tab switch
