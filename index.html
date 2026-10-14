@@ -69,6 +69,9 @@
     text-decoration: none; white-space: nowrap;
   }
   .skill-download:hover { background: #005A9E; }
+  .app-tour { max-width: 1100px; margin: 18px 40px 0; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow: hidden; }
+  .app-tour img { display: block; width: 100%; height: auto; background: var(--bg); }
+  .app-tour figcaption { padding: 9px 14px; font-size: 12.5px; color: var(--ink-2); border-top: 1px solid var(--line); }
   .erd-jump-wrap { margin-left: auto; align-self: center; padding-bottom: 8px; display: inline-flex; align-items: center; gap: 8px; }
   .erd-jump-wrap label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-3); }
   #erd-jump {
@@ -466,6 +469,7 @@ const MODELS = [
     schemaLabel: schemaLabel("scintilla", "Configure Scintilla catalog/schema in config.js"),
     example: "store_sales, store_invt, dly_dmnd_fcst",
     skillDownload: SKILL_BASE + "app-skills/deploy-monday-morning-scintilla",
+    tour: "monday-morning-tour.gif",
     genieByDomain: Object.fromEntries(SCINTILLA_MONDAY_MORNING.domains.map((d) =>
       [d.name, null]))
   }
@@ -483,6 +487,7 @@ function buildTab(model, isFirst) {
       '<span class="count search-count"></span><span class="toc"></span>' +
       (model.skillDownload ? '<a class="skill-download" href="' + model.skillDownload + '" target="_blank" rel="noopener">✦ Get Monday Morning Skill</a>' : '') +
     '</div>' +
+    (model.tour ? '<figure class="app-tour"><img data-src="' + model.tour + '" width="1100" height="688" alt="Animated tour of the Monday Morning App" /><figcaption>The Monday Morning App on these feeds: executive brief, sales, forecast, hourly stats, category, e-commerce, agents and commerce exchange.</figcaption></figure>' : '') +
     '<div class="legend">' +
       '<span class="item"><span class="swatch" style="background: oklch(0.80 0.10 300);"></span> Schema table' + ((model.ucBase && model.ucBase !== "#") ? ', click to open its reference docs' : '') + '</span>' +
     '</div>' +
@@ -618,6 +623,8 @@ const tabsNav = document.getElementById("tabs");
 const jumpWrap = tabsNav.querySelector(".erd-jump-wrap");
 
 function activateTab(tabId) {
+  const tour = document.querySelector("#" + tabId + " .app-tour img[data-src]");
+  if (tour) { tour.src = tour.dataset.src; tour.removeAttribute("data-src"); }
   document.querySelectorAll("#tabs-container main").forEach((m) => m.classList.toggle("active", m.id === tabId));
   document.querySelectorAll("nav.tabs button[data-tab]").forEach((b) => b.classList.toggle("active", b.dataset.tab === tabId));
   const model = MODELS.find((m) => m.tabId === tabId);
