@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Health and Life Sciences Data Models</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script src="data.js"></script>
+<style>
+  :root {
+    --bg: oklch(0.972 0.020 300);
+    --surface: oklch(0.995 0.004 300);
+    --ink: oklch(0.24 0.035 300);
+    --ink-2: oklch(0.46 0.030 300);
+    --ink-3: oklch(0.62 0.024 300);
+    --line: oklch(0.90 0.018 300);
+    --accent: oklch(0.55 0.17 300);
+    --accent-bg: oklch(0.955 0.030 300);
+    --shadow: 300;
+    --green: oklch(0.55 0.13 150);
+    --green-bg: oklch(0.96 0.04 150);
+    --warn-bg: oklch(0.97 0.03 80);
+    --warn-line: oklch(0.85 0.09 80);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; line-height: 1.5;
+  }
+  header { padding: 24px 40px 0; border-bottom: 1px solid var(--line); background: var(--surface); }
+  .header-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+  .genieflow-logo { height: 62px; width: auto; }
+  @media (max-width: 640px) { .genieflow-logo { height: 44px; } }
+  .brandbar { display: flex; align-items: center; gap: 9px; }
+  .ind-switch { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; margin: 6px 0 2px; }
+  .ind-switch button { all: unset; cursor: pointer; padding: 6px 18px; font-size: 13px; font-weight: 700; color: var(--ink-2); }
+  .ind-switch button + button { border-left: 1px solid var(--line); }
+  .ind-switch button.active { background: var(--accent); color: #fff; }
+  .ind-switch button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  #industry-empty { display: none; margin: 48px 40px; padding: 44px; border: 1px dashed var(--line); border-radius: 14px; background: var(--surface); color: var(--ink-2); text-align: center; }
+  #industry-empty h2 { margin: 0 0 8px; font-size: 18px; color: var(--ink); }
+  #industry-empty p { margin: 0 auto; font-size: 14px; max-width: 52ch; }
+  .brandbar .dbx-logo { width: 23px; height: 23px; }
+  .brandbar .dbx-word { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+  .eyebrow { text-transform: uppercase; letter-spacing: 0.16em; font-size: 11px; font-weight: 700; color: var(--accent); }
+  h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.015em; margin: 6px 0 2px; }
+  .sub { font-size: 13px; color: var(--ink-2); font-family: "SF Mono", Menlo, Consolas, monospace; }
+  nav.tabs { display: flex; gap: 4px; margin-top: 16px; }
+  nav.tabs button {
+    appearance: none; border: 1px solid var(--line); border-bottom: none; background: var(--bg);
+    color: var(--ink-2); font: inherit; font-size: 13.5px; font-weight: 600;
+    padding: 9px 18px; border-radius: 9px 9px 0 0; cursor: pointer;
+  }
+  nav.tabs button.active { background: var(--surface); color: var(--ink); border-color: var(--line); position: relative; }
+  nav.tabs button.active::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--surface); }
+  nav.tabs button.active::before { content: ""; position: absolute; left: 0; right: 0; top: -1px; height: 3px; background: var(--accent); border-radius: 3px 3px 0 0; }
+  nav.tabs button .tablogo { margin-right: 7px; vertical-align: -2px; }
+  nav.tabs button .vlogo { margin-right: 7px; color: #FF7A00; font-weight: 800; font-size: 12.5px; letter-spacing: -0.04em; }
+  nav.tabs button.active { color: var(--accent); }
+  .erd-jump-wrap { margin-left: auto; align-self: center; padding-bottom: 8px; display: inline-flex; align-items: center; gap: 8px; }
+  .erd-jump-wrap label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-3); }
+  #erd-jump {
+    font: inherit; font-size: 13px; font-weight: 600; color: var(--ink);
+    padding: 7px 12px; border: 1px solid var(--line); border-radius: 8px;
+    background: var(--surface); cursor: pointer; outline: none; max-width: 340px;
+  }
+  #erd-jump:focus { border-color: var(--accent); }
+  section.domain { scroll-margin-top: 70px; }
+  main { display: none; }
+  main.active { display: block; }
+  .note { margin: 18px 40px 0; padding: 13px 18px; border-radius: 10px; font-size: 13px; max-width: 1180px; }
+  .note.ok { background: var(--green-bg); border: 1px solid oklch(0.82 0.10 150); color: oklch(0.34 0.10 150); }
+  .note.warn { background: var(--warn-bg); border: 1px solid var(--warn-line); color: oklch(0.40 0.06 70); }
+  .note.info { background: var(--accent-bg); border: 1px solid var(--accent); color: var(--ink); }
+  .note strong { font-weight: 700; }
+  .note + .note { margin-top: 10px; }
+  .legend { margin: 14px 40px 0; display: flex; gap: 22px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); }
+  .legend .item { display: inline-flex; align-items: center; gap: 7px; }
+  .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  .diagram-wrap { padding: 16px 20px 26px; overflow-x: auto; }
+  .mermaid { font-size: 14px; }
+  footer { padding: 0 40px 50px; font-size: 12px; color: var(--ink-3); max-width: 1180px; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: oklch(0.95 0.01 255); padding: 0 4px; border-radius: 3px; font-size: 12px; }
+
+  /* veeva836 tab */
+  .toolbar {
+    position: sticky; top: 0; z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line);
+    padding: 12px 40px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+  }
+  .toolbar input {
+    font: inherit; font-size: 13.5px; padding: 8px 14px; border: 1px solid var(--line);
+    border-radius: 8px; width: 320px; outline: none;
+  }
+  .toolbar input:focus { border-color: var(--accent); }
+  .toolbar .count { font-size: 12.5px; color: var(--ink-2); }
+  .toc { display: flex; gap: 6px; flex-wrap: wrap; }
+  .toc a {
+    font-size: 12px; font-weight: 600; color: var(--accent); text-decoration: none;
+    padding: 4px 10px; border: 1px solid var(--line); border-radius: 99px; background: var(--bg);
+  }
+  .toc a:hover { background: var(--accent-bg); }
+  section.domain { border-bottom: 1px solid var(--line); }
+  section.domain > .dhead { padding: 26px 40px 0; }
+  section.domain h2 { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 2px; }
+  section.domain .blurb { font-size: 13px; color: var(--ink-2); margin: 0; }
+  section.domain .dmeta { font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+  .placeholder { padding: 40px; color: var(--ink-3); font-size: 13px; }
+  details.idx { margin: 18px 40px 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+  details.idx summary { cursor: pointer; font-size: 14.5px; font-weight: 700; padding: 12px 18px; user-select: none; }
+  details.idx summary .hint { font-weight: 400; font-size: 12.5px; color: var(--ink-3); }
+  details.idx[open] summary { border-bottom: 1px solid var(--line); }
+  #index-grid { padding: 16px 18px 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 8px; }
+  .chip {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+    padding: 8px 13px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+    text-decoration: none; color: var(--ink); font-size: 12.5px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+  }
+  .chip:hover { border-color: var(--accent); background: var(--accent-bg); }
+  .chip .meta { color: var(--ink-3); font-size: 11px; white-space: nowrap; font-family: inherit; }
+  .chip.hidden { display: none; }
+  /* Talk to Genie (mock) */
+  section.domain > .dhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; }
+  button.genie {
+    display: inline-flex; align-items: center; gap: 8px; flex: none;
+    font: inherit; font-size: 13px; font-weight: 600; color: white;
+    background: #1B3139; border: none; border-radius: 8px; padding: 9px 16px; cursor: pointer;
+  }
+  button.genie:hover { background: #2d4a57; }
+  button.genie svg { width: 16px; height: 16px; }
+  .genie-overlay {
+    display: none; position: fixed; inset: 0; background: oklch(0.2 0.02 260 / 0.45); z-index: 50;
+    align-items: center; justify-content: center;
+  }
+  .genie-overlay.open { display: flex; }
+  .genie-modal {
+    background: var(--surface); border-radius: 14px; padding: 26px 30px; max-width: 460px; width: 90%;
+    box-shadow: 0 20px 60px oklch(0.2 0.02 260 / 0.3);
+  }
+  .genie-modal h3 { margin: 0 0 6px; font-size: 17px; display: flex; align-items: center; gap: 9px; }
+  .genie-modal h3 svg { width: 22px; height: 22px; }
+  .genie-modal p { font-size: 13.5px; color: var(--ink-2); margin: 8px 0 0; }
+  .genie-modal .actions { margin-top: 18px; display: flex; justify-content: flex-end; }
+  .genie-modal .actions button {
+    font: inherit; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--bg); cursor: pointer;
+  }
+  /* clickable entities in rendered SVG */
+  .erd-hint {
+    margin: 16px 20px 2px; display: inline-flex; align-items: center; gap: 7px;
+    font-size: 12.5px; font-weight: 600; color: var(--accent);
+    background: var(--accent-bg); border: 1px solid color-mix(in oklch, var(--accent) 45%, var(--surface));
+    border-radius: 99px; padding: 5px 13px;
+  }
+  /* ---- collapsible domain bars ---- */
+  .domain-controls { display: flex; align-items: center; gap: 6px; padding: 6px 24px 0; }
+  .domain-controls .ctrl-label { font-size: 12px; font-weight: 700; color: var(--ink-3); margin-right: auto; text-transform: uppercase; letter-spacing: 0.08em; }
+  .domain-controls button { all: unset; cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--accent); padding: 6px 11px; border-radius: 7px; }
+  .domain-controls button:hover { background: var(--accent-bg); }
+  .domain-controls button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .domains { display: flex; flex-direction: column; gap: 14px; padding: 14px 24px 8px; }
+  section.domain {
+    scroll-margin-top: 80px; background: var(--surface); border: 1px solid var(--line); border-radius: 13px;
+    box-shadow: 0 1px 2px oklch(0.42 0.07 300 / 0.07), 0 4px 12px oklch(0.42 0.07 300 / 0.08);
+    transition: box-shadow .28s cubic-bezier(.22,1,.36,1), border-color .28s cubic-bezier(.22,1,.36,1);
+    overflow: clip;
+  }
+  section.domain:hover { box-shadow: 0 2px 8px oklch(0.42 0.07 300 / 0.11), 0 14px 30px oklch(0.42 0.07 300 / 0.13); }
+  section.domain.open { border-color: var(--accent); box-shadow: 0 6px 18px oklch(0.42 0.07 300 / 0.15), 0 22px 48px oklch(0.42 0.07 300 / 0.18); }
+  section.domain > .dhead { display: flex; align-items: center; gap: 8px; padding: 0; }
+  button.dbar { all: unset; box-sizing: border-box; flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px; padding: 15px 8px 15px 18px; cursor: pointer; }
+  button.dbar:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; border-radius: 13px; }
+  .chev { flex: none; width: 16px; height: 16px; color: var(--ink-3); transition: transform .28s cubic-bezier(.22,1,.36,1); }
+  section.domain.open .chev { transform: rotate(90deg); color: var(--accent); }
+  .dbar .dtitle { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+  .dbar .dname { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+  .dbar .blurb { font-size: 12.5px; font-weight: 400; color: var(--ink-2); line-height: 1.4; }
+  .dbar .dmeta { flex: none; font-size: 11.5px; font-weight: 600; color: var(--ink-3); white-space: nowrap; padding-left: 14px; }
+  section.domain > .dhead button.genie { flex: none; margin: 0 14px 0 2px; }
+  .dbody { border-top: 1px solid var(--line); }
+  .dbody[hidden] { display: none; }
+  .dbody:not([hidden]) { animation: revealBody .3s cubic-bezier(.22,1,.36,1); }
+  @keyframes revealBody { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    section.domain, .chev { transition: none; }
+    .dbody:not([hidden]) { animation: none; }
+  }
+  .mermaid g.uc-link { cursor: pointer; }
+  .mermaid g.uc-link text { text-decoration: underline; text-decoration-style: dotted; text-decoration-thickness: 1px; text-underline-offset: 2.5px; text-decoration-color: var(--accent); }
+  .mermaid g.uc-link:hover rect { stroke: var(--accent) !important; stroke-width: 2.5px !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <img class="genieflow-logo" src="genieflow-logo.png" alt="GenieFlow">
+    <div class="brandbar">
+      <svg class="dbx-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#FF3621" d="M.95 14.184L12 20.403l9.919-5.55v2.21L12 22.662l-10.484-5.96-.565.308v.77L12 24l11.05-6.218v-4.317l-.515-.309L12 19.118l-9.867-5.653v-2.21L12 16.805l11.05-6.218V6.32l-.515-.308L12 11.974 2.647 6.681 12 1.388l7.76 4.368.668-.411v-.566L12 0 .95 6.27v.72L12 13.207l9.919-5.55v2.26L12 15.52 1.516 9.56l-.565.308Z"/></svg>
+      <span class="dbx-word">Databricks</span>
+    </div>
+  </div>
+  <h1>Health and Life Sciences Data Models</h1>
+  <div class="ind-switch" id="ind-switch" role="tablist" aria-label="Industry view">
+    <button type="button" data-ind="hls" class="active" aria-selected="true">HLS</button>
+    <button type="button" data-ind="cpg" aria-selected="false">CPG</button>
+  </div>
+  <nav class="tabs" id="tabs">
+    <span class="erd-jump-wrap">
+      <select id="erd-jump"><option value="">Select a data model…</option></select>
+    </span>
+  </nav>
+</header>
+
+<div id="tabs-container"></div>
+<div id="industry-empty">
+  <h2>CPG models coming soon</h2>
+  <p>This view is scaffolded and ready. Provide CPG sources — a Unity Catalog schema dump or a model spec — and these tabs will be populated the same way as the HLS models.</p>
+</div>
+
+<script>
+const UC_ORG = "";
+const ucUrlFor = (base, t) => base ? base + encodeURIComponent(t) : null;
+
+mermaid.initialize({
+  startOnLoad: false,
+  maxTextSize: 2000000,
+  theme: "base",
+  er: { useMaxWidth: false },
+  themeVariables: {
+    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif',
+    primaryColor: "#e8eefb",
+    primaryBorderColor: "#5a7fd6",
+    lineColor: "#7c8aa0",
+    primaryTextColor: "#1b2a44"
+  }
+});
+
+// make every entity box in a rendered mermaid SVG link to its UC table
+function makeEntitiesClickable(container, model) {
+  if (!model.ucBase) return;
+  container.querySelectorAll('g[id^="entity-"]').forEach((g) => {
+    const label = g.querySelector("text");
+    if (!label) return;
+    const name = label.textContent.trim();
+    if (!model.data.tables[name]) return;
+    g.classList.add("uc-link");
+    g.addEventListener("click", () => window.open(ucUrlFor(model.ucBase, name), "_blank"));
+    const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+    title.textContent = "Open " + name + " reference";
+    g.appendChild(title);
+  });
+}
+
+// color entity boxes by object kind (Health Cloud vs Salesforce standard) when tagged
+function colorEntitiesByKind(container, model) {
+  const STYLE = {
+    hc: { fill: "#f4e9fb", stroke: "#9b4fc8" }, std: { fill: "#edf0f4", stroke: "#33425a" },
+    // HEDIS tab provenance: file=HEDIS files, datacloud=Salesforce Data Cloud, measure=computed, ref=reference
+    file: { fill: "#e7f5ec", stroke: "#2f8f57" }, datacloud: { fill: "#e6f6fd", stroke: "#00A1E0" },
+    measure: { fill: "#f4e9fb", stroke: "#9b4fc8" }, ref: { fill: "#edf0f4", stroke: "#33425a" },
+  };
+  container.querySelectorAll('g[id^="entity-"]').forEach((g) => {
+    const label = g.querySelector("text");
+    if (!label) return;
+    const meta = model.data.tables[label.textContent.trim()];
+    if (!meta || !meta.kind || !STYLE[meta.kind]) return;
+    const s = STYLE[meta.kind];
+    g.querySelectorAll("rect").forEach((r) => {
+      r.style.fill = s.fill; r.style.stroke = s.stroke; r.style.strokeWidth = "1.6px";
+    });
+  });
+}
+
+async function renderMermaidInto(el, src, model) {
+  const id = "mmd-" + Math.random().toString(36).slice(2);
+  try {
+    const { svg } = await mermaid.render(id, src);
+    el.innerHTML = svg;
+    makeEntitiesClickable(el, model);
+    colorEntitiesByKind(el, model);
+  } catch (e) {
+    el.innerHTML = '<div class="placeholder">Diagram failed to render: ' + e.message + "</div>";
+  }
+}
+
+// ---- brand styling per data source ----
+const SF_ACCENT = "#00A1E0", SF_ACCENT_BG = "#E6F6FD";
+const VEEVA_ACCENT = "#FF7A00", VEEVA_ACCENT_BG = "#FFF1E5";
+const SF_LOGO = '<svg class="tablogo" viewBox="0 0 24 24" width="20" height="14" aria-hidden="true"><path fill="#00A1E0" d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>';
+const VEEVA_LOGO = '<span class="vlogo" aria-hidden="true">veeva</span>';
+const NS_ACCENT = "#C74634", NS_ACCENT_BG = "#FBEAE7";  // Oracle Redwood red
+const NS_LOGO = '<span class="tablogo" style="color:#C74634;font-weight:800;font-size:12.5px;letter-spacing:-0.03em;" aria-hidden="true">NetSuite</span>';
+const HEDIS_ACCENT = "#0E9C8A", HEDIS_ACCENT_BG = "#E4F6F3";  // HLS teal (mixed-source model)
+const HEDIS_LOGO = '<span class="tablogo" style="color:#0E9C8A;font-weight:800;font-size:12.5px;letter-spacing:-0.02em;" aria-hidden="true">HEDIS</span>';
+function brandOf(m) {
+  if (m.source === "salesforce") return { accent: SF_ACCENT, bg: SF_ACCENT_BG, logo: SF_LOGO };
+  if (m.source === "netsuite")   return { accent: NS_ACCENT, bg: NS_ACCENT_BG, logo: NS_LOGO };
+  if (m.source === "hedis")      return { accent: HEDIS_ACCENT, bg: HEDIS_ACCENT_BG, logo: HEDIS_LOGO };
+  return { accent: VEEVA_ACCENT, bg: VEEVA_ACCENT_BG, logo: VEEVA_LOGO };
+}
+
+// ---- model registry: one tab per data model ----
+const MODELS = [
+  {
+    tabId: "tab-commercial",
+    tabLabel: "Commercial CRM",
+    data: VEEVA836,
+    ucBase: null,
+    schemaLabel: "veeva836",
+    example: "call2, em_event"
+  },
+  {
+    tabId: "tab-safety",
+    tabLabel: "Safety · Pharmacovigilance",
+    data: SAFETYVAULT,
+    ucBase: null,
+    schemaLabel: "safety-vault",
+    example: "case_adverse_event, product",
+    // domains with a live Genie space — button opens it instead of the mock
+    genieByDomain: {}
+  },
+  {
+    tabId: "tab-quality",
+    tabLabel: "Quality · QMS",
+    data: QMSVEEVA,
+    ucBase: null,
+    schemaLabel: "quality-qms-veeva",
+    example: "quality_event, capa, change_control"
+  },
+  {
+    tabId: "tab-clinical",
+    tabLabel: "Clinical · CTMS",
+    data: CTMSVEEVA,
+    ucBase: null,
+    schemaLabel: "clinical-ctms-veeva",
+    example: "study__v, site__v, monitoring_event__ctms",
+    // domains with a live Genie space — button opens it instead of the mock
+    genieByDomain: {}
+  },
+  {
+    tabId: "tab-patient-services",
+    tabLabel: "Health Cloud · Benefits Verification",
+    data: PATIENTSERVICES,
+    source: "salesforce",
+    mock: true,
+    ucBase: "https://developer.salesforce.com/docs/industries/health-cloud/references#",
+    schemaLabel: "salesforce_health_cloud.benefits_verification (mock)",
+    example: "MemberPlan, CoverageBenefit, CareBenefitVerifyRequest",
+    // domains with a live Genie space — button opens it instead of the mock
+    genieByDomain: {}
+  },
+  {
+    tabId: "tab-netsuite",
+    tabLabel: "Finance · NetSuite Accounting",
+    data: NETSUITE_GTN,
+    source: "netsuite",
+    ucBase: null,
+    schemaLabel: "netsuite",
+    example: "transactions, revenue_plans, amortization_schedules"
+  },
+  {
+    tabId: "tab-hedis",
+    tabLabel: "Quality · HEDIS Measures",
+    data: HEDIS,
+    source: "hedis",
+    mock: true,
+    ucBase: "https://www.ncqa.org/hedis/measures/#",
+    schemaLabel: "hedis_quality_demo  ·  dims via Salesforce Data Cloud",
+    example: "fact_claims, dim_member, mv_quality_performance",
+    // Ingestion demo lives in demos/hedis-quality/ (Auto Loader files + Data Cloud dims).
+    // Optional: wire a Genie space per domain here once created.
+    genieByDomain: {}
+  }
+];
+
+// build one tab's <main>: summary, legend, table index, search, domain sections
+function buildTab(model, isFirst) {
+  const D = model.data;
+  const main = document.createElement("main");
+  main.id = model.tabId;
+  if (isFirst) main.classList.add("active");
+  main.innerHTML =
+    '<div class="toolbar">' +
+      '<input type="search" class="search" placeholder="Filter ' + D.totals.tables + ' tables… (e.g. ' + model.example + ')" autocomplete="off" />' +
+      '<span class="count search-count"></span><span class="toc"></span>' +
+    '</div>' +
+    '<div class="legend">' +
+      '<span class="item"><span class="swatch" style="background: oklch(0.80 0.10 300);"></span> Schema table' + (model.ucBase ? ', click to open its reference docs' : '') + '</span>' +
+    '</div>' +
+    '<details class="idx"><summary>All tables <span class="hint">— expand for the full index</span></summary>' +
+      '<div class="index-grid"></div></details>' +
+    '<div class="domains"></div>' +
+    '<footer style="padding-top: 30px;">' + (model.source === "salesforce"
+      ? 'Relationships are inferred from Salesforce conventions: a lookup column <code>AccountId</code> references the ' +
+        '<code>Account</code> object, and a custom lookup <code>CopayProgram__c</code> references the <code>CopayProgram__c</code> ' +
+        'object. Audit/owner columns (<code>CreatedById</code>, <code>LastModifiedById</code>, <code>OwnerId</code>) are omitted. ' +
+        'This is an illustrative <strong>mock</strong> model (Health Cloud + Life Sciences Cloud style), not live data.'
+      : model.source === "netsuite"
+      ? 'These relationships follow the official SuiteAnalytics Connect business models for Revenue Recognition, ' +
+        'Invoice with Amortization, Expense Amortization and General Accounting.'
+      : 'Relationships are inferred from Veeva naming conventions: a column named ' +
+        '<code>foo__v</code> on table <code>bar__v</code> is treated as a reference to table <code>foo__v</code> when that ' +
+        'table exists in the schema. Edge labels name the referencing column. Audit columns (<code>created_by__v</code>, ' +
+        '<code>modified_by__v</code>, <code>ownerid__v</code>) are omitted.') + '</footer>';
+
+  const toc = main.querySelector(".toc");
+  D.domains.forEach((d, i) => {
+    const a = document.createElement("a");
+    a.href = "#" + model.tabId + "-domain-" + i;
+    a.textContent = d.name + " (" + d.tables.length + ")";
+    a.addEventListener("click", () => {
+      activateTab(model.tabId);
+      const s = document.getElementById(model.tabId + "-domain-" + i);
+      if (s) setSectionOpen(s, true);
+    });
+    toc.appendChild(a);
+  });
+
+  const grid = main.querySelector(".index-grid");
+  Object.keys(D.tables).sort().forEach((t) => {
+    const a = document.createElement("a");
+    a.className = "chip"; if (model.ucBase) { a.href = ucUrlFor(model.ucBase, t); a.target = "_blank"; } a.dataset.name = t;
+    a.innerHTML = "<span>" + t + "</span><span class='meta'>" + D.tables[t].cols + " cols</span>";
+    grid.appendChild(a);
+  });
+
+  const searchEl = main.querySelector(".search");
+  const countEl = main.querySelector(".search-count");
+  const details = main.querySelector("details.idx");
+  function applyFilter() {
+    const q = searchEl.value.trim().toLowerCase();
+    let shown = 0;
+    grid.querySelectorAll(".chip").forEach((c) => {
+      const hit = !q || c.dataset.name.includes(q);
+      c.classList.toggle("hidden", !hit); if (hit) shown++;
+    });
+    countEl.textContent = q ? shown + " of " + D.totals.tables + " tables" : D.totals.tables + " tables";
+  }
+  searchEl.addEventListener("input", () => { if (searchEl.value.trim()) details.open = true; applyFilter(); });
+  applyFilter();
+
+  const domainsEl = main.querySelector(".domains");
+  const ctrl = document.createElement("div");
+  ctrl.className = "domain-controls";
+  ctrl.innerHTML = '<span class="ctrl-label">' + D.domains.length + ' data domains</span>' +
+    '<button type="button" data-act="expand">Expand all</button>' +
+    '<button type="button" data-act="collapse">Collapse all</button>';
+  ctrl.querySelector('[data-act="expand"]').addEventListener("click",
+    () => domainsEl.querySelectorAll("section.domain").forEach((s) => setSectionOpen(s, true)));
+  ctrl.querySelector('[data-act="collapse"]').addEventListener("click",
+    () => domainsEl.querySelectorAll("section.domain").forEach((s) => setSectionOpen(s, false)));
+  domainsEl.parentNode.insertBefore(ctrl, domainsEl);
+
+  D.domains.forEach((d, i) => {
+    const sec = document.createElement("section");
+    sec.className = "domain";
+    sec.id = model.tabId + "-domain-" + i;
+    const bodyId = sec.id + "-body";
+    const genieUrl = (model.genieByDomain || {})[d.name];
+    sec.innerHTML =
+      '<div class="dhead">' +
+        '<button class="dbar" type="button" aria-expanded="false" aria-controls="' + bodyId + '">' +
+          '<svg class="chev" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+          '<span class="dtitle"><span class="dname" role="heading" aria-level="3">' + d.name + "</span>" +
+          "<span class='blurb'>" + d.blurb + "</span></span>" +
+          "<span class='dmeta'>" + d.tables.length + " tables · " + d.edges + " rel" +
+          (d.ghosts.length ? " · " + d.ghosts.length + " refs" : "") + "</span>" +
+        "</button>" +
+      "</div>" +
+      '<div class="dbody" id="' + bodyId + '" role="region" aria-label="' + d.name + ' diagram" hidden>' +
+        '<div class="erd-hint">Every box is a table.' + (model.ucBase ? ' Click any box to open its reference docs.' : '') + '</div>' +
+        '<div class="diagram-wrap"><div class="placeholder">Rendering…</div></div>' +
+      "</div>";
+    sec.querySelector("button.genie")?.addEventListener("click", () =>
+      genieUrl ? window.open(genieUrl, "_blank") : openGenieMock(d.name));
+    sec.querySelector("button.dbar").addEventListener("click",
+      () => setSectionOpen(sec, !sec.classList.contains("open")));
+    sec._model = model;
+    sec._domainIndex = i;
+    domainsEl.appendChild(sec);
+  });
+
+  return main;
+}
+
+// Databricks AI/BI Genie sparkle mark (drawn inline; orange brand red #FF3621)
+const GENIE_SVG =
+  '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+  '<path d="M10 2l1.9 5.4L17 9.5l-5.1 2.1L10 17l-1.9-5.4L3 9.5l5.1-2.1L10 2z" fill="#FF3621"/>' +
+  '<path d="M18 12l1 2.8 2.8 1-2.8 1-1 2.8-1-2.8-2.8-1 2.8-1 1-2.8z" fill="#FF8163"/>' +
+  '<path d="M16.5 3.5l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7.7-1.9z" fill="#FF8163"/></svg>';
+
+const genieOverlay = document.createElement("div");
+genieOverlay.className = "genie-overlay";
+genieOverlay.innerHTML =
+  '<div class="genie-modal"><h3>' + GENIE_SVG + '<span id="genie-title"></span></h3>' +
+  '<p id="genie-body"></p>' +
+  '<div class="actions"><button onclick="this.closest(\'.genie-overlay\').classList.remove(\'open\')">Close</button></div></div>';
+genieOverlay.addEventListener("click", (e) => { if (e.target === genieOverlay) genieOverlay.classList.remove("open"); });
+document.body.appendChild(genieOverlay);
+
+function openGenieMock(domainName) {
+  document.getElementById("genie-title").textContent = "Talk to Genie — " + domainName;
+  document.getElementById("genie-body").innerHTML =
+    "This will open an AI/BI Genie space scoped to the <strong>" + domainName +
+    "</strong> tables, so you can ask questions about this data model in natural language. " +
+    "Mocked for now — Genie space coming soon.";
+  genieOverlay.classList.add("open");
+}
+
+// ---- assemble tabs + nav buttons ----
+const tabsContainer = document.getElementById("tabs-container");
+const tabsNav = document.getElementById("tabs");
+const jumpWrap = tabsNav.querySelector(".erd-jump-wrap");
+
+function activateTab(tabId) {
+  document.querySelectorAll("#tabs-container main").forEach((m) => m.classList.toggle("active", m.id === tabId));
+  document.querySelectorAll("nav.tabs button[data-tab]").forEach((b) => b.classList.toggle("active", b.dataset.tab === tabId));
+  const model = MODELS.find((m) => m.tabId === tabId);
+  if (model) {
+    const b = brandOf(model);
+    document.documentElement.style.setProperty("--accent", b.accent);
+    document.documentElement.style.setProperty("--accent-bg", b.bg);
+  }
+}
+
+// domain diagrams render lazily — only on first expand (collapsed by default)
+function renderDomainDiagram(sec) {
+  if (sec._rendered) return;
+  sec._rendered = true;
+  renderMermaidInto(sec.querySelector(".diagram-wrap"), sec._model.data.domains[sec._domainIndex].mermaid, sec._model);
+}
+function setSectionOpen(sec, open) {
+  sec.classList.toggle("open", open);
+  sec.querySelector(".dbar").setAttribute("aria-expanded", open ? "true" : "false");
+  sec.querySelector(".dbody").hidden = !open;
+  if (open) renderDomainDiagram(sec);
+}
+
+MODELS.forEach((m, idx) => {
+  const b = brandOf(m);
+  const btn = document.createElement("button");
+  btn.dataset.tab = m.tabId;
+  btn.dataset.industry = m.industry || "hls";
+  btn.style.setProperty("--accent", b.accent);
+  btn.innerHTML = b.logo + "<span>" + m.tabLabel + " — " + m.data.totals.tables + " tables</span>";
+  if (idx === 0) btn.classList.add("active");
+  btn.addEventListener("click", () => activateTab(m.tabId));
+  tabsNav.insertBefore(btn, jumpWrap);
+  tabsContainer.appendChild(buildTab(m, idx === 0));
+});
+// theme the page to the first (active) tab on load
+(function () {
+  const b = brandOf(MODELS[0]);
+  document.documentElement.style.setProperty("--accent", b.accent);
+  document.documentElement.style.setProperty("--accent-bg", b.bg);
+})();
+
+// ---- global "Go to ERD" dropdown (grouped by model, jumps across tabs) ----
+const jumpEl = document.getElementById("erd-jump");
+MODELS.forEach((m) => {
+  const og = document.createElement("optgroup");
+  og.label = m.tabLabel;
+  og.dataset.industry = m.industry || "hls";
+  m.data.domains.forEach((d, i) => {
+    const o = document.createElement("option");
+    o.value = m.tabId + "|" + m.tabId + "-domain-" + i;
+    o.textContent = d.name;
+    og.appendChild(o);
+  });
+  jumpEl.appendChild(og);
+});
+jumpEl.addEventListener("change", () => {
+  if (!jumpEl.value) return;
+  const [tabId, sectionId] = jumpEl.value.split("|");
+  activateTab(tabId);
+  const sec = document.getElementById(sectionId);
+  if (sec) { setSectionOpen(sec, true); sec.scrollIntoView({ behavior: "smooth", block: "start" }); }
+  jumpEl.value = "";
+});
+
+// ---- industry switcher (HLS / CPG): filters which models are shown ----
+const indSwitch = document.getElementById("ind-switch");
+const industryEmpty = document.getElementById("industry-empty");
+function applyIndustry(ind) {
+  indSwitch.querySelectorAll("button").forEach((b) => {
+    const on = b.dataset.ind === ind;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-selected", on ? "true" : "false");
+  });
+  // show only this industry's tab buttons
+  tabsNav.querySelectorAll("button[data-tab]").forEach((b) => {
+    b.style.display = (b.dataset.industry === ind) ? "" : "none";
+  });
+  // filter the "Go to ERD" dropdown
+  jumpEl.querySelectorAll("optgroup").forEach((og) => { og.hidden = og.dataset.industry !== ind; });
+  jumpEl.value = "";
+  const h1 = document.querySelector("header h1");
+  if (h1) h1.textContent = (ind === "cpg")
+    ? "Consumer Packaged Goods Data Models"
+    : "Health and Life Sciences Data Models";
+  const first = MODELS.find((m) => (m.industry || "hls") === ind);
+  jumpWrap.style.display = first ? "" : "none";
+  tabsContainer.style.display = first ? "" : "none";
+  industryEmpty.style.display = first ? "none" : "block";
+  if (first) {
+    activateTab(first.tabId);
+  } else {
+    document.querySelectorAll("#tabs-container main").forEach((m) => m.classList.remove("active"));
+  }
+}
+indSwitch.querySelectorAll("button").forEach((b) =>
+  b.addEventListener("click", () => applyIndustry(b.dataset.ind)));
+applyIndustry("hls");
+
+// Auto-setup for screenshot capture: check for ?tab=<tabId> or ?setup=<tabId>
+// This code runs at the END after all page initialization
+setTimeout(async () => {
+  const params = new URLSearchParams(window.location.search);
+  const setupTab = params.get('tab') || params.get('setup');
+
+  if (!setupTab) return; // No setup needed
+  if (!MODELS || !MODELS.some(m => m.tabId === setupTab)) return; // Invalid tab
+
+  try {
+    // Activate the requested tab
+    activateTab(setupTab);
+    await new Promise(r => setTimeout(r, 1000)); // Wait for tab switch
+
+    // Find and expand first domain section
+    const main = document.querySelector('main.active');
+    if (main) {
+      const section = main.querySelector('section.domain');
+      if (section && !section.classList.contains('open')) {
+        // Call setSectionOpen directly to expand and render diagram
+        setSectionOpen(section, true);
+
+        // Wait for SVG to render (max 12 seconds)
+        for (let i = 0; i < 48; i++) {
+          const wrap = section.querySelector('.diagram-wrap');
+          const svg = wrap?.querySelector('svg');
+          if (svg && svg.querySelectorAll('*').length > 20) {
+            break; // SVG has content
+          }
+          await new Promise(r => setTimeout(r, 250));
+        }
+
+        // Scroll to section
+        section.scrollIntoView({behavior: 'auto', block: 'start'});
+      }
+    }
+  } catch (e) {
+    // Fail silently
+  }
+}, 400); // Run 400ms after page load to ensure everything is initialized
+</script>
+</body>
+</html>
