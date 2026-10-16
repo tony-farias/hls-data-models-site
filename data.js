@@ -15,3 +15,131 @@ const SCINTILLA_FORECASTING = {"domains":[{"name":"Forecasting","blurb":"Daily, 
 const SCINTILLA_ECOMMERCE = {"domains":[{"name":"E-commerce & Omnichannel","blurb":"E-commerce inventory, instock, transactability, product content, fulfillment and returns for digital shelf and omnichannel performance analysis.","tables":["ecom_invt","ecom_instock_pct","fc_ecom_instock_pct","digital_transactability","ecom_prod_cntnt_score","ecom_returns","store_fulfillment","hourly_store_fulfillment","omni_sales","kit_sales","prod_dim","omni_item_dim","dc_dim","store_dim"],"ghosts":[],"edges":6,"mermaid":"erDiagram\n  prod_dim ||--o{ ecom_invt : \"catlg_item_id\"\n  prod_dim ||--o{ digital_transactability : \"catlg_item_id\"\n  prod_dim ||--o{ ecom_prod_cntnt_score : \"catlg_item_id\"\n  prod_dim ||--o{ ecom_returns : \"catlg_item_id\"\n  store_dim ||--o{ store_fulfillment : \"store_nbr\"\n  store_dim ||--o{ hourly_store_fulfillment : \"store_nbr\"\n  ecom_invt {\n    string catlg_item_id FK\n    number ats_rtl_amt\n    number ats_qty\n    number ats_cost_amt\n    number trbl_qty\n    number rip_qty\n    string note \"17 columns total\"\n  }\n  ecom_instock_pct {\n    string catlg_item_id\n    number fcst_qty\n    string on_hand_qty\n    string supplier_hash_id\n    date rpt_dt\n    string geo_region_cd\n    string note \"7 columns total\"\n  }\n  fc_ecom_instock_pct {\n    string catlg_item_id\n    string fc_id\n    number fcst_qty\n    string on_hand_qty\n    string supplier_hash_id\n    date rpt_dt\n    string note \"9 columns total\"\n  }\n  digital_transactability {\n    number store_nbr\n    string catlg_item_id FK\n    string wm_item_nbr\n    number invt_reltd_not_pub_ind\n    number sales_fcst_unavlbl_score_val\n    string supplier_hash_id\n    string note \"34 columns total\"\n  }\n  ecom_prod_cntnt_score {\n    string catlg_item_id FK\n    number wt_qty\n    number score_nbr\n    number ovrl_score_nbr\n    string img_url_id\n    number impact_score_nbr\n    string note \"17 columns total\"\n  }\n  ecom_returns {\n    string catlg_item_id FK\n    string wm_item_nbr\n    string chnl_subtype_id\n    string rtn_type_desc\n    string rtn_rsn_desc\n    string rtn_rfnd_type_desc\n    string note \"20 columns total\"\n  }\n  store_fulfillment {\n    string wm_item_nbr\n    string store_nbr FK\n    number ftpr_qty\n    number nil_pick_qty\n    number presub_qty\n    number schdl_nil_pick_qty\n    string note \"28 columns total\"\n  }\n  hourly_store_fulfillment {\n    number store_nbr FK\n    string wm_item_nbr\n    number bus_hr_nbr\n    string fulfmt_type_desc\n    string catlg_item_id\n    number order_amt\n    string note \"19 columns total\"\n  }\n  omni_sales {\n    string wm_item_nbr\n    string catlg_item_id\n    number vendor_nbr\n    number wm_yr_wk_nbr\n    number auth_based_gmv_amt\n    number auth_based_net_sales_amt\n    string note \"22 columns total\"\n  }\n  kit_sales {\n    string wm_item_nbr\n    string catlg_item_id\n    string kit_catlg_item_id\n    number wm_yr_wk_nbr\n    string kit_comp_qty\n    number auth_based_kit_net_cncl_qty\n    string note \"31 columns total\"\n  }\n  prod_dim {\n    string catlg_item_id\n    string ecomm_upc_nbr\n    date street_dt\n    string lifecyc_status_nm\n    date offr_start_dt\n    date offr_end_dt\n    string note \"47 columns total\"\n  }\n  omni_item_dim {\n    string abstr_prod_id\n    number accpt_tempr_hi_qty\n    number accpt_tempr_low_qty\n    number acct_nbr\n    number acct_nbr_type_cd\n    string acct_nbr_type_desc\n    string note \"336 columns total\"\n  }\n  dc_dim {\n    number dc_nbr\n    number base_div_nbr\n    string store_type_desc\n    number bu_gross_size_qty\n    string banner_desc\n    date public_close_dt\n    string note \"31 columns total\"\n  }\n  store_dim {\n    number store_nbr\n    string ph_nbr\n    string store_type_desc\n    date fin_open_dt\n    number bu_gross_size_qty\n    number expnd_size_qty\n    string note \"67 columns total\"\n  }"}],"tables":{"ecom_invt":{"cols":17,"domain":"E-commerce & Omnichannel"},"ecom_instock_pct":{"cols":7,"domain":"E-commerce & Omnichannel"},"fc_ecom_instock_pct":{"cols":9,"domain":"E-commerce & Omnichannel"},"digital_transactability":{"cols":34,"domain":"E-commerce & Omnichannel"},"ecom_prod_cntnt_score":{"cols":17,"domain":"E-commerce & Omnichannel"},"ecom_returns":{"cols":20,"domain":"E-commerce & Omnichannel"},"store_fulfillment":{"cols":28,"domain":"E-commerce & Omnichannel"},"hourly_store_fulfillment":{"cols":19,"domain":"E-commerce & Omnichannel"},"omni_sales":{"cols":22,"domain":"E-commerce & Omnichannel"},"kit_sales":{"cols":31,"domain":"E-commerce & Omnichannel"},"prod_dim":{"cols":47,"domain":"E-commerce & Omnichannel"},"omni_item_dim":{"cols":336,"domain":"E-commerce & Omnichannel"},"dc_dim":{"cols":31,"domain":"E-commerce & Omnichannel"},"store_dim":{"cols":67,"domain":"E-commerce & Omnichannel"}},"hubRefs":{},"totals":{"tables":14,"edges":6}};
 const SCINTILLA_PRICING_FUNDING = {"domains":[{"name":"Pricing & Funding","blurb":"Store-item markups and markdowns combined with cooperative trade and advertising funds for price-action and investment-effectiveness analysis.","tables":["sku_mumd","coops","item_dim","store_dim","calendar_dim","store_sales"],"ghosts":[],"edges":4,"mermaid":"erDiagram\n  item_dim ||--o{ sku_mumd : \"wm_item_nbr\"\n  store_dim ||--o{ sku_mumd : \"store_nbr\"\n  item_dim ||--o{ store_sales : \"wm_item_nbr\"\n  store_dim ||--o{ store_sales : \"store_nbr\"\n  sku_mumd {\n    number store_nbr FK\n    string wm_item_nbr FK\n    string mumd_event_desc\n    string mumd_src_desc\n    number dept_nbr\n    number dept_ring_nbr\n    string note \"23 columns total\"\n  }\n  coops {\n    number deal_id\n    number tot_allow_amt\n    number vendor_dept_nbr\n    string deal_desc\n    string disc_type_desc\n    string alloc_status_desc\n    string note \"28 columns total\"\n  }\n  item_dim {\n    string wm_item_nbr\n    string mds_fam_id\n    string catlg_item_id\n    number vendor_nbr\n    number acctg_dept_nbr\n    string item_status_cd\n    string note \"261 columns total\"\n  }\n  store_dim {\n    number store_nbr\n    string ph_nbr\n    string store_type_desc\n    date fin_open_dt\n    number bu_gross_size_qty\n    number expnd_size_qty\n    string note \"67 columns total\"\n  }\n  calendar_dim {\n    date cal_dt\n    date ly_cal_dt\n    number julian_dt\n    string date_desc\n    string cal_day_alpha_nbr\n    number cal_wk_day_nbr\n    string note \"61 columns total\"\n  }\n  store_sales {\n    number store_nbr FK\n    string wm_item_nbr FK\n    string mds_fam_id\n    number vendor_nbr\n    number wm_yr_wk_nbr\n    number sales_amt\n    string note \"16 columns total\"\n  }"}],"tables":{"sku_mumd":{"cols":23,"domain":"Pricing & Funding"},"coops":{"cols":28,"domain":"Pricing & Funding"},"item_dim":{"cols":261,"domain":"Pricing & Funding"},"store_dim":{"cols":67,"domain":"Pricing & Funding"},"calendar_dim":{"cols":61,"domain":"Pricing & Funding"},"store_sales":{"cols":16,"domain":"Pricing & Funding"}},"hubRefs":{},"totals":{"tables":6,"edges":4}};
 // END GENERATED SCINTILLA MODELS
+
+const X12_HPA = {
+ "domains": [
+  {
+   "name": "Ingest & Parse (Bronze → Silver)",
+   "blurb": "Raw X12 5010 files (837 claims, 835 remittance, 834 enrollment) land whole in Bronze with lineage and a payload hash. The pinned x12-edi-parser turns each interchange into parsed transactions; structural failures go to quarantine with safe error codes only. Silver normalizes claims, service lines, remittance, and enrollment. Green = Bronze raw X12 · Blue = Silver parsed.",
+   "tables": [
+    "bronze_raw_x12",
+    "silver_parsed_transactions",
+    "silver_x12_quarantine",
+    "silver_claim_header",
+    "silver_claim_line",
+    "silver_remittance",
+    "silver_enrollment"
+   ],
+   "ghosts": [],
+   "edges": 4,
+   "mermaid": "erDiagram\n  bronze_raw_x12 ||--o{ silver_parsed_transactions : \"source_record_id\"\n  bronze_raw_x12 ||--o{ silver_x12_quarantine : \"source_record_id\"\n  silver_claim_header ||--o{ silver_claim_line : \"claim_id\"\n  silver_claim_header ||--o{ silver_remittance : \"claim_id\"\n  bronze_raw_x12 {\n    string source_record_id PK\n    string note \"7 columns total\"\n  }\n  silver_parsed_transactions {\n    string source_record_id PK\n    string note \"9 columns total\"\n  }\n  silver_x12_quarantine {\n    string source_record_id FK\n    string note \"6 columns total\"\n  }\n  silver_claim_header {\n    string claim_id PK\n    string note \"13 columns total\"\n  }\n  silver_claim_line {\n    string claim_id FK\n    string note \"9 columns total\"\n  }\n  silver_remittance {\n    string claim_id FK\n    string note \"11 columns total\"\n  }\n  silver_enrollment {\n    string note \"12 columns total\"\n  }"
+  },
+  {
+   "name": "Health Plan Analytics (Gold)",
+   "blurb": "De-identified Gold tables behind the FWA Shield App and its Genie Space: claims and service lines from 837, payments from 835, coverage from 834, and aggregate parser quality. Member keys are one-way hashes; identifiers and clinical codes stay strings. Purple = Gold analytics.",
+   "tables": [
+    "gold_claims",
+    "gold_claim_lines",
+    "gold_members",
+    "gold_providers",
+    "gold_payments",
+    "gold_enrollments",
+    "gold_data_quality"
+   ],
+   "ghosts": [],
+   "edges": 5,
+   "mermaid": "erDiagram\n  gold_members ||--o{ gold_claims : \"member_key\"\n  gold_providers ||--o{ gold_claims : \"provider_key\"\n  gold_claims ||--o{ gold_claim_lines : \"claim_id\"\n  gold_claims ||--o{ gold_payments : \"claim_id\"\n  gold_members ||--o{ gold_enrollments : \"member_key\"\n  gold_claims {\n    string claim_id PK\n    string member_key FK\n    string provider_key FK\n    string note \"7 columns total\"\n  }\n  gold_claim_lines {\n    string claim_id FK\n    string note \"8 columns total\"\n  }\n  gold_members {\n    string member_key PK\n    string note \"4 columns total\"\n  }\n  gold_providers {\n    string provider_key PK\n    string note \"3 columns total\"\n  }\n  gold_payments {\n    string claim_id FK\n    string note \"9 columns total\"\n  }\n  gold_enrollments {\n    string member_key FK\n    string note \"8 columns total\"\n  }\n  gold_data_quality {\n    string note \"3 columns total\"\n  }"
+  }
+ ],
+ "tables": {
+  "bronze_raw_x12": {
+   "cols": 7,
+   "domain": "Ingest & Parse (Bronze → Silver)",
+   "kind": "file",
+   "label": "Bronze · raw x12"
+  },
+  "silver_parsed_transactions": {
+   "cols": 9,
+   "domain": "Ingest & Parse (Bronze → Silver)",
+   "kind": "datacloud",
+   "label": "Silver · parsed transactions"
+  },
+  "silver_x12_quarantine": {
+   "cols": 6,
+   "domain": "Ingest & Parse (Bronze → Silver)",
+   "kind": "datacloud",
+   "label": "Silver · x12 quarantine"
+  },
+  "silver_claim_header": {
+   "cols": 13,
+   "domain": "Ingest & Parse (Bronze → Silver)",
+   "kind": "datacloud",
+   "label": "Silver · claim header"
+  },
+  "silver_claim_line": {
+   "cols": 9,
+   "domain": "Ingest & Parse (Bronze → Silver)",
+   "kind": "datacloud",
+   "label": "Silver · claim line"
+  },
+  "silver_remittance": {
+   "cols": 11,
+   "domain": "Ingest & Parse (Bronze → Silver)",
+   "kind": "datacloud",
+   "label": "Silver · remittance"
+  },
+  "silver_enrollment": {
+   "cols": 12,
+   "domain": "Ingest & Parse (Bronze → Silver)",
+   "kind": "datacloud",
+   "label": "Silver · enrollment"
+  },
+  "gold_claims": {
+   "cols": 7,
+   "domain": "Health Plan Analytics (Gold)",
+   "kind": "measure",
+   "label": "Gold · claims"
+  },
+  "gold_claim_lines": {
+   "cols": 8,
+   "domain": "Health Plan Analytics (Gold)",
+   "kind": "measure",
+   "label": "Gold · claim lines"
+  },
+  "gold_members": {
+   "cols": 4,
+   "domain": "Health Plan Analytics (Gold)",
+   "kind": "measure",
+   "label": "Gold · members"
+  },
+  "gold_providers": {
+   "cols": 3,
+   "domain": "Health Plan Analytics (Gold)",
+   "kind": "measure",
+   "label": "Gold · providers"
+  },
+  "gold_payments": {
+   "cols": 9,
+   "domain": "Health Plan Analytics (Gold)",
+   "kind": "measure",
+   "label": "Gold · payments"
+  },
+  "gold_enrollments": {
+   "cols": 8,
+   "domain": "Health Plan Analytics (Gold)",
+   "kind": "measure",
+   "label": "Gold · enrollments"
+  },
+  "gold_data_quality": {
+   "cols": 3,
+   "domain": "Health Plan Analytics (Gold)",
+   "kind": "measure",
+   "label": "Gold · data quality"
+  }
+ },
+ "hubRefs": {},
+ "totals": {
+  "tables": 14,
+  "edges": 9
+ }
+};

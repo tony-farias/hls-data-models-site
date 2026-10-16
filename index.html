@@ -326,7 +326,10 @@ const HEDIS_ACCENT = "#0E9C8A", HEDIS_ACCENT_BG = "#E4F6F3";  // HLS teal (mixed
 const HEDIS_LOGO = '<span class="tablogo" style="color:#0E9C8A;font-weight:800;font-size:12.5px;letter-spacing:-0.02em;" aria-hidden="true">HEDIS</span>';
 const SCINTILLA_ACCENT = "#0071CE", SCINTILLA_ACCENT_BG = "#E6F2FA";
 const SCINTILLA_LOGO = '<span class="tablogo" style="color:#0071CE;font-weight:800;font-size:12px;letter-spacing:-0.03em;" aria-hidden="true">Walmart</span>';
+const X12_ACCENT = "#1F4E79", X12_ACCENT_BG = "#E8EFF7";  // FWA Shield navy
+const X12_LOGO = '<span class="tablogo" style="color:#1F4E79;font-weight:800;font-size:12.5px;letter-spacing:-0.02em;" aria-hidden="true">X12</span>';
 function brandOf(m) {
+  if (m.source === "x12")        return { accent: X12_ACCENT, bg: X12_ACCENT_BG, logo: X12_LOGO };
   if (m.source === "salesforce") return { accent: SF_ACCENT, bg: SF_ACCENT_BG, logo: SF_LOGO };
   if (m.source === "netsuite")   return { accent: NS_ACCENT, bg: NS_ACCENT_BG, logo: NS_LOGO };
   if (m.source === "hedis")      return { accent: HEDIS_ACCENT, bg: HEDIS_ACCENT_BG, logo: HEDIS_LOGO };
@@ -354,6 +357,7 @@ const SKILL_FOR = (m) => SKILL_BASE + (
   m.source === "salesforce" ? "genie-creation-skills/health-cloud-benefits" :
   m.source === "hedis" ? "lakeflow-connect-skills/hedis-file-ingestion" :
   m.source === "scintilla" ? "app-skills/deploy-monday-morning-scintilla" :
+  m.source === "x12" ? "app-skills/x12-health-plan-analytics" :
   "genie-creation-skills/create-genie-space");
 
 // ---- model registry: one tab per data model ----
@@ -429,6 +433,22 @@ const MODELS = [
     genieByDomain: {}
   },
   {
+    tabId: "tab-x12",
+    tabLabel: "Health Plan · X12 Claims",
+    data: X12_HPA,
+    source: "x12",
+    mock: true,
+    ucBase: "#",
+    schemaLabel: "X12 837 · 835 · 834  ·  Bronze → Silver → Gold",
+    example: "gold_claims, gold_payments, silver_claim_line",
+    skillDownload: SKILL_BASE + "app-skills/x12-health-plan-analytics",
+    skillLabel: "✦ Get X12 Skill",
+    tour: "x12-health-plan-tour.gif",
+    tourAlt: "Animated tour of the FWA Shield App",
+    tourCaption: "The FWA Shield App on these Gold tables, with fictional data: payment-integrity dashboard, SIU workbench, and Ask Genie.",
+    genieByDomain: {}
+  },
+  {
     tabId: "tab-cpg-sales", tabLabel: "Sales & Demand", data: SCINTILLA_SALES_DEMAND,
     industry: "cpg", source: "scintilla", ucBase: catalogBase("scintilla"), ucOrg: orgIdFor("scintilla"),
     schemaLabel: schemaLabel("scintilla", "Configure Scintilla catalog/schema in config.js"), example: "store_sales, omni_sales"
@@ -469,7 +489,10 @@ const MODELS = [
     schemaLabel: schemaLabel("scintilla", "Configure Scintilla catalog/schema in config.js"),
     example: "store_sales, store_invt, dly_dmnd_fcst",
     skillDownload: SKILL_BASE + "app-skills/deploy-monday-morning-scintilla",
+    skillLabel: "✦ Get Monday Morning Skill",
     tour: "monday-morning-tour.gif",
+    tourAlt: "Animated tour of the Monday Morning App",
+    tourCaption: "The Monday Morning App on these feeds: executive brief, sales, forecast, hourly stats, category, e-commerce, agents and commerce exchange.",
     genieByDomain: Object.fromEntries(SCINTILLA_MONDAY_MORNING.domains.map((d) =>
       [d.name, null]))
   }
@@ -485,9 +508,9 @@ function buildTab(model, isFirst) {
     '<div class="toolbar">' +
       '<input type="search" class="search" placeholder="Filter ' + D.totals.tables + ' tables… (e.g. ' + model.example + ')" autocomplete="off" />' +
       '<span class="count search-count"></span><span class="toc"></span>' +
-      (model.skillDownload ? '<a class="skill-download" href="' + model.skillDownload + '" target="_blank" rel="noopener">✦ Get Monday Morning Skill</a>' : '') +
+      (model.skillDownload ? '<a class="skill-download" href="' + model.skillDownload + '" target="_blank" rel="noopener">' + model.skillLabel + '</a>' : '') +
     '</div>' +
-    (model.tour ? '<figure class="app-tour"><img data-src="' + model.tour + '" width="1100" height="688" alt="Animated tour of the Monday Morning App" /><figcaption>The Monday Morning App on these feeds: executive brief, sales, forecast, hourly stats, category, e-commerce, agents and commerce exchange.</figcaption></figure>' : '') +
+    (model.tour ? '<figure class="app-tour"><img data-src="' + model.tour + '" width="1100" height="688" alt="' + model.tourAlt + '" /><figcaption>' + model.tourCaption + '</figcaption></figure>' : '') +
     '<div class="legend">' +
       '<span class="item"><span class="swatch" style="background: oklch(0.80 0.10 300);"></span> Schema table' + ((model.ucBase && model.ucBase !== "#") ? ', click to open its reference docs' : '') + '</span>' +
     '</div>' +
@@ -502,6 +525,10 @@ function buildTab(model, isFirst) {
       : model.source === "netsuite"
       ? 'These relationships follow the official SuiteAnalytics Connect business models for Revenue Recognition, ' +
         'Invoice with Amortization, Expense Amortization and General Accounting.'
+      : model.source === "x12"
+      ? 'Tables come from the X12 Health Plan Analytics skill: raw 837, 835, and 834 files are parsed by the pinned ' +
+        'x12-edi-parser into Bronze and Silver, then published as de-identified Gold tables for the FWA Shield App and ' +
+        'its Genie Space. Relationships follow the pipeline\'s join keys. Shown with fictional data.'
       : model.source === "scintilla"
       ? 'These models use Walmart Scintilla US Cloud Feeds metadata. ' +
         'Relationships are curated logical joins and are shown only when the join column exists on both tables. ' +
