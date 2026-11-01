@@ -143,3 +143,1663 @@ const X12_HPA = {
   "edges": 9
  }
 };
+
+const ELAAD = {
+ "domains": [
+  {
+   "name": "Pharmacy Lifecycle Claims (Rx)",
+   "blurb": "Every adjudication transaction from the pharmacy and switch: billings, secondary billings to copay programs, and reversals when a paid prescription is never picked up, each with NCPDP reject codes, plan, and the patient-pay breakdown. Green = pharmacy lifecycle claims.",
+   "tables": [
+    "rx_claim",
+    "rx_claim_reject"
+   ],
+   "ghosts": [
+    "patient",
+    "ref_product",
+    "ref_plan",
+    "ref_provider",
+    "ref_pharmacy",
+    "ref_reject_code"
+   ],
+   "edges": 7,
+   "mermaid": "erDiagram\n  patient ||--o{ rx_claim : \"patient_id\"\n  ref_product ||--o{ rx_claim : \"ndc11\"\n  ref_provider ||--o{ rx_claim : \"prescriber_id\"\n  ref_pharmacy ||--o{ rx_claim : \"pharmacy_id\"\n  ref_plan ||--o{ rx_claim : \"plan_id\"\n  rx_claim ||--o{ rx_claim_reject : \"claim_id\"\n  ref_reject_code ||--o{ rx_claim_reject : \"reject_code\"\n  rx_claim {\n    string claim_id PK\n    string rx_id\n    int fill_number\n    string patient_id FK\n    string transaction_type\n    string claim_status\n    boolean final_claim_flag\n    int coverage_seq\n    date date_written\n    date service_date\n    date transaction_date\n    string ndc11 FK\n    decimal quantity\n    int days_supply\n    string daw_code\n    string prescriber_id FK\n    string pharmacy_id FK\n    string plan_id FK\n    string other_coverage_code\n    string benefit_stage\n    decimal plan_pay_amt\n    decimal patient_pay_amt\n    decimal deductible_amt\n    decimal copay_amt\n    decimal coinsurance_amt\n    string reversal_of_claim_id\n  }\n  rx_claim_reject {\n    string claim_id PK, FK\n    int reject_seq PK\n    string reject_code FK\n  }\n  patient {\n    string patient_id PK\n  }\n  ref_product {\n    string ndc11 PK\n  }\n  ref_plan {\n    string plan_id PK\n  }\n  ref_provider {\n    string provider_id PK\n  }\n  ref_pharmacy {\n    string pharmacy_id PK\n  }\n  ref_reject_code {\n    string reject_code PK\n  }"
+  },
+  {
+   "name": "Medical Claims & Remittance (Dx)",
+   "blurb": "Professional and institutional claims as submitted (diagnoses, procedures, and buy-and-bill drugs with their NDC) and the payer's 835 remittance, where a missing authorization shows up as a denial. Blue = medical claims and remittance.",
+   "tables": [
+    "dx_claim",
+    "dx_claim_diagnosis",
+    "dx_claim_line",
+    "dx_remittance",
+    "dx_remittance_adjustment"
+   ],
+   "ghosts": [
+    "patient",
+    "ref_provider",
+    "ref_plan",
+    "ref_diagnosis",
+    "ref_procedure",
+    "ref_product",
+    "ref_adjustment_reason"
+   ],
+   "edges": 12,
+   "mermaid": "erDiagram\n  patient ||--o{ dx_claim : \"patient_id\"\n  ref_provider ||--o{ dx_claim : \"rendering_provider_id / billing_provider_id / referring_provider_id\"\n  ref_plan ||--o{ dx_claim : \"plan_id\"\n  dx_claim ||--o{ dx_claim_diagnosis : \"claim_id\"\n  ref_diagnosis ||--o{ dx_claim_diagnosis : \"icd10_code\"\n  dx_claim ||--o{ dx_claim_line : \"claim_id\"\n  ref_procedure ||--o{ dx_claim_line : \"procedure_code\"\n  ref_product ||--o{ dx_claim_line : \"ndc11\"\n  dx_claim ||--o{ dx_remittance : \"claim_id\"\n  ref_plan ||--o{ dx_remittance : \"plan_id\"\n  dx_remittance ||--o{ dx_remittance_adjustment : \"remit_id\"\n  ref_adjustment_reason ||--o{ dx_remittance_adjustment : \"carc_code\"\n  dx_claim {\n    string claim_id PK\n    string patient_id FK\n    string claim_type\n    date service_from_date\n    date service_to_date\n    string place_of_service\n    string bill_type\n    string rendering_provider_id FK\n    string billing_provider_id FK\n    string referring_provider_id FK\n    string plan_id FK\n    decimal total_charge_amt\n  }\n  dx_claim_diagnosis {\n    string claim_id PK, FK\n    int diagnosis_seq PK\n    string icd10_code FK\n  }\n  dx_claim_line {\n    string claim_id PK, FK\n    int line_number PK\n    date service_date\n    string procedure_code FK\n    string ndc11 FK\n    decimal units\n    decimal line_charge_amt\n  }\n  dx_remittance {\n    string remit_id PK\n    string claim_id FK\n    string plan_id FK\n    date paid_date\n    string claim_status_code\n    decimal allowed_amt\n    decimal paid_amt\n    decimal patient_resp_amt\n  }\n  dx_remittance_adjustment {\n    string remit_id PK, FK\n    int adjustment_seq PK\n    string group_code\n    string carc_code FK\n    decimal adjustment_amt\n  }\n  patient {\n    string patient_id PK\n  }\n  ref_provider {\n    string provider_id PK\n  }\n  ref_plan {\n    string plan_id PK\n  }\n  ref_diagnosis {\n    string icd10_code PK\n  }\n  ref_procedure {\n    string procedure_code PK\n  }\n  ref_product {\n    string ndc11 PK\n  }\n  ref_adjustment_reason {\n    string carc_code PK\n  }"
+  },
+  {
+   "name": "Patient, Payer, Provider & Product Reference",
+   "blurb": "Tokenized patients and providers, the product master across every market a patient fills in, plans with payment type and NCPDP program type (copay cards and free-product programs are plans too), and the reject and adjustment code lists. Grey = reference.",
+   "tables": [
+    "patient",
+    "ref_product",
+    "ref_plan",
+    "ref_provider",
+    "ref_pharmacy",
+    "ref_reject_code",
+    "ref_diagnosis",
+    "ref_procedure",
+    "ref_adjustment_reason"
+   ],
+   "ghosts": [],
+   "edges": 0,
+   "mermaid": "erDiagram\n  patient {\n    string patient_id PK\n    int birth_year\n    string gender\n    string patient_state\n    string patient_zip3\n    date first_activity_date\n    date last_activity_date\n    boolean has_rx_activity\n    boolean has_dx_activity\n    boolean stable_flag\n  }\n  ref_product {\n    string ndc11 PK\n    string product_name\n    string molecule_name\n    string manufacturer_name\n    string market\n    string therapeutic_class\n    string strength\n    string dosage_form\n    string route\n    decimal package_quantity\n    string brand_generic\n    boolean specialty_flag\n    string benefit_type\n    date launch_date\n  }\n  ref_plan {\n    string plan_id PK\n    string plan_name\n    string payer_name\n    string pbm_name\n    string payment_type\n    string plan_type\n    string program_type_code\n    string plan_state\n  }\n  ref_provider {\n    string provider_id PK\n    string provider_type\n    string specialty\n    string provider_state\n    string provider_zip5\n  }\n  ref_pharmacy {\n    string pharmacy_id PK\n    string pharmacy_service_type\n    string pharmacy_channel\n    string pharmacy_state\n    string pharmacy_zip3\n  }\n  ref_reject_code {\n    string reject_code PK\n    string reject_description\n    string reject_group\n  }\n  ref_diagnosis {\n    string icd10_code PK\n    string icd10_description\n    string condition_group\n  }\n  ref_procedure {\n    string procedure_code PK\n    string code_system\n    string procedure_description\n  }\n  ref_adjustment_reason {\n    string carc_code PK\n    string carc_description\n    string adjustment_category\n  }"
+  },
+  {
+   "name": "Patient-Centric Analytics (derived)",
+   "blurb": "The look-forward view built on the raw claims: one row per fill with initial and final status, reject history, copay-card buy-down, and true out-of-pocket cost, plus therapy episodes with line of therapy and source of business. Purple = derived.",
+   "tables": [
+    "rx_fill",
+    "therapy_episode"
+   ],
+   "ghosts": [
+    "patient",
+    "ref_product",
+    "ref_plan",
+    "ref_provider",
+    "rx_claim"
+   ],
+   "edges": 6,
+   "mermaid": "erDiagram\n  patient ||--o{ rx_fill : \"patient_id\"\n  ref_product ||--o{ rx_fill : \"ndc11\"\n  ref_provider ||--o{ rx_fill : \"prescriber_id\"\n  ref_plan ||--o{ rx_fill : \"primary_plan_id\"\n  patient ||--o{ therapy_episode : \"patient_id\"\n  rx_fill ||--o{ rx_claim : \"rx_id, fill_number\"\n  rx_fill {\n    string rx_id PK\n    int fill_number PK\n    string patient_id FK\n    string ndc11 FK\n    string prescriber_id FK\n    string primary_plan_id FK\n    string final_payment_type\n    date first_submit_date\n    date final_date\n    string initial_status\n    string final_status\n    int reject_count\n    string first_reject_code\n    int days_to_final\n    decimal total_claim_cost\n    decimal oop_before_buydown\n    decimal buydown_amt\n    decimal oop_after_buydown\n    boolean copay_card_flag\n  }\n  therapy_episode {\n    string episode_id PK\n    string patient_id FK\n    string market\n    string molecule_name\n    string benefit_type\n    int line_of_therapy\n    string source_of_business\n    date episode_start_date\n    date episode_end_date\n    int dispensed_fills\n    int days_on_therapy\n    boolean discontinued\n  }\n  patient {\n    string patient_id PK\n  }\n  ref_product {\n    string ndc11 PK\n  }\n  ref_plan {\n    string plan_id PK\n  }\n  ref_provider {\n    string provider_id PK\n  }\n  rx_claim {\n    string claim_id PK\n  }"
+  }
+ ],
+ "tables": {
+  "rx_claim": {
+   "cols": 26,
+   "domain": "Pharmacy Lifecycle Claims (Rx)",
+   "kind": "file",
+   "label": "Pharmacy lifecycle claims: one row per adjudication transaction (billing, secondary billing, or reversal). Count a fill as dispensed only when its PAID claim has no reversal."
+  },
+  "rx_claim_reject": {
+   "cols": 3,
+   "domain": "Pharmacy Lifecycle Claims (Rx)",
+   "kind": "file",
+   "label": "Reject codes on REJECTED transactions, in the order the payer returned them (up to five)."
+  },
+  "dx_claim": {
+   "cols": 12,
+   "domain": "Medical Claims & Remittance (Dx)",
+   "kind": "datacloud",
+   "label": "Medical claim headers from professional (837P) and institutional (837I) claims, as submitted."
+  },
+  "dx_claim_diagnosis": {
+   "cols": 3,
+   "domain": "Medical Claims & Remittance (Dx)",
+   "kind": "datacloud",
+   "label": "Diagnosis codes on a medical claim, in billed order."
+  },
+  "dx_claim_line": {
+   "cols": 7,
+   "domain": "Medical Claims & Remittance (Dx)",
+   "kind": "datacloud",
+   "label": "Service lines on a medical claim. Buy-and-bill drugs carry a HCPCS code plus the NDC."
+  },
+  "dx_remittance": {
+   "cols": 8,
+   "domain": "Medical Claims & Remittance (Dx)",
+   "kind": "datacloud",
+   "label": "Payer remittance (835) for a medical claim. Not every claim has a remittance in open data."
+  },
+  "dx_remittance_adjustment": {
+   "cols": 5,
+   "domain": "Medical Claims & Remittance (Dx)",
+   "kind": "datacloud",
+   "label": "Adjustments on a remittance, with group code and reason code."
+  },
+  "patient": {
+   "cols": 10,
+   "domain": "Patient, Payer, Provider & Product Reference",
+   "kind": "ref",
+   "label": "One row per de-identified patient token. Open claims have no enrollment file, so the activity window and stability flag stand in for eligibility."
+  },
+  "ref_product": {
+   "cols": 14,
+   "domain": "Patient, Payer, Provider & Product Reference",
+   "kind": "ref",
+   "label": "Product master keyed by package NDC, covering every market a patient fills in. Brands and manufacturers are fictional; labeler 00000 is never assigned, so no code matches a real product."
+  },
+  "ref_plan": {
+   "cols": 8,
+   "domain": "Patient, Payer, Provider & Product Reference",
+   "kind": "ref",
+   "label": "Payer and plan master with PBM, payment type, and NCPDP program type. Copay programs, free-product programs, and cash appear as their own plans so secondary payers can be identified."
+  },
+  "ref_provider": {
+   "cols": 5,
+   "domain": "Patient, Payer, Provider & Product Reference",
+   "kind": "ref",
+   "label": "Prescriber, rendering, referring, and billing provider master. Tokens only, no NPIs."
+  },
+  "ref_pharmacy": {
+   "cols": 5,
+   "domain": "Patient, Payer, Provider & Product Reference",
+   "kind": "ref",
+   "label": "Dispensing pharmacy master."
+  },
+  "ref_reject_code": {
+   "cols": 3,
+   "domain": "Patient, Payer, Provider & Product Reference",
+   "kind": "ref",
+   "label": "NCPDP reject codes that appear in this dataset, grouped the way access studies report them."
+  },
+  "ref_diagnosis": {
+   "cols": 3,
+   "domain": "Patient, Payer, Provider & Product Reference",
+   "kind": "ref",
+   "label": "ICD-10-CM codes that appear in this dataset."
+  },
+  "ref_procedure": {
+   "cols": 3,
+   "domain": "Patient, Payer, Provider & Product Reference",
+   "kind": "ref",
+   "label": "CPT and HCPCS codes that appear in this dataset, with short descriptions written for this demo."
+  },
+  "ref_adjustment_reason": {
+   "cols": 3,
+   "domain": "Patient, Payer, Provider & Product Reference",
+   "kind": "ref",
+   "label": "X12 claim adjustment reason codes (CARC) that appear in remittance data."
+  },
+  "rx_fill": {
+   "cols": 19,
+   "domain": "Patient-Centric Analytics (derived)",
+   "kind": "measure",
+   "label": "Derived patient-centric view: one row per prescription fill, with the look-forward applied. Initial and final status, reject history, secondary payer, and true out-of-pocket cost."
+  },
+  "therapy_episode": {
+   "cols": 12,
+   "domain": "Patient-Centric Analytics (derived)",
+   "kind": "measure",
+   "label": "Derived from dispensed fills and medical administrations: continuous treatment episodes per patient and molecule, with line of therapy and source of business."
+  }
+ },
+ "hubRefs": {},
+ "samples": {
+  "rx_claim": {
+   "columns": [
+    "claim_id",
+    "rx_id",
+    "fill_number",
+    "patient_id",
+    "transaction_type",
+    "claim_status",
+    "final_claim_flag",
+    "coverage_seq",
+    "date_written",
+    "service_date",
+    "transaction_date",
+    "ndc11",
+    "quantity",
+    "days_supply",
+    "daw_code",
+    "prescriber_id",
+    "pharmacy_id",
+    "plan_id",
+    "other_coverage_code",
+    "benefit_stage",
+    "plan_pay_amt",
+    "patient_pay_amt",
+    "deductible_amt",
+    "copay_amt",
+    "coinsurance_amt",
+    "reversal_of_claim_id"
+   ],
+   "descriptions": [
+    "Transaction identifier.",
+    "De-identified prescription token; every submission, refill, and reversal of one prescription shares it.",
+    "NCPDP fill number (403-D3): 0 = original, 1 and up = refills.",
+    "Patient token.",
+    "NCPDP transaction code: B1 billing, B2 reversal.",
+    "PAID, REJECTED, or REVERSED.",
+    "This transaction settled the fill: no later submission for the same fill follows it.",
+    "1 = primary payer; 2 = secondary payer, such as a manufacturer copay program.",
+    "Date the prescription was written (414-DE).",
+    "Date of service (401-D1).",
+    "Adjudication date; reversals post days after the fill.",
+    "Product submitted.",
+    "Quantity dispensed in billing units (442-E7).",
+    "Days supply (405-D5).",
+    "Dispense-as-written code (408-D8).",
+    "Prescriber token.",
+    "Pharmacy token.",
+    "Plan that adjudicated this transaction.",
+    "NCPDP other coverage code (308-C8): 01 none, 08 billing patient responsibility only.",
+    "Part D benefit stage on paid claims: 1 deductible, 2 initial, 4 catastrophic.",
+    "Total amount paid by this plan (509-F9); null on rejects and reversals.",
+    "Patient pay amount after this plan (505-F5).",
+    "Amount applied to periodic deductible (517-FH).",
+    "Amount of copay (518-FI).",
+    "Amount of coinsurance (572-4U).",
+    "On REVERSED rows, the PAID claim being reversed because the prescription was not picked up."
+   ],
+   "rows": [
+    [
+     "RC100001380",
+     "RX16C7148772",
+     "0",
+     "P7C34D2BE583",
+     "B1",
+     "REJECTED",
+     "false",
+     "1",
+     "2025-12-02",
+     "2025-12-05",
+     "2025-12-05",
+     "00000130230",
+     "30.000",
+     "30",
+     "0",
+     "PR222DBBC6",
+     "PH0A07D7BD",
+     "C002",
+     "01",
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     "RC100001381",
+     "RX16C7148772",
+     "0",
+     "P7C34D2BE583",
+     "B1",
+     "REJECTED",
+     "false",
+     "1",
+     "2025-12-02",
+     "2025-12-09",
+     "2025-12-09",
+     "00000130230",
+     "30.000",
+     "30",
+     "0",
+     "PR222DBBC6",
+     "PH1AF30D12",
+     "C002",
+     "01",
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     "RC100001382",
+     "RX16C7148772",
+     "0",
+     "P7C34D2BE583",
+     "B1",
+     "PAID",
+     "false",
+     "1",
+     "2025-12-02",
+     "2025-12-27",
+     "2025-12-27",
+     "00000130230",
+     "30.000",
+     "30",
+     "0",
+     "PR222DBBC6",
+     "PH1AF30D12",
+     "C002",
+     "01",
+     null,
+     "5950.00",
+     "150.00",
+     "0.00",
+     "150.00",
+     "0.00",
+     null
+    ],
+    [
+     "RC100001383",
+     "RX16C7148772",
+     "0",
+     "P7C34D2BE583",
+     "B2",
+     "REVERSED",
+     "true",
+     "1",
+     "2025-12-02",
+     "2025-12-27",
+     "2026-01-01",
+     "00000130230",
+     "30.000",
+     "30",
+     "0",
+     "PR222DBBC6",
+     "PH1AF30D12",
+     "C002",
+     "01",
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     "RC100001382"
+    ],
+    [
+     "RC100001384",
+     "RXB8C5B25DA5",
+     "0",
+     "P7C34D2BE583",
+     "B1",
+     "REJECTED",
+     "false",
+     "1",
+     "2026-01-08",
+     "2026-01-10",
+     "2026-01-10",
+     "00000120102",
+     "4.000",
+     "28",
+     "0",
+     "PR222DBBC6",
+     "PH1AF30D12",
+     "C002",
+     "01",
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    [
+     "RC100001385",
+     "RXB8C5B25DA5",
+     "0",
+     "P7C34D2BE583",
+     "B1",
+     "PAID",
+     "true",
+     "1",
+     "2026-01-08",
+     "2026-01-10",
+     "2026-01-10",
+     "00000120102",
+     "4.000",
+     "28",
+     "0",
+     "PR222DBBC6",
+     "PH1AF30D12",
+     "C002",
+     "01",
+     null,
+     "3750.00",
+     "150.00",
+     "0.00",
+     "150.00",
+     "0.00",
+     null
+    ],
+    [
+     "RC100001386",
+     "RXB8C5B25DA5",
+     "0",
+     "P7C34D2BE583",
+     "B1",
+     "PAID",
+     "true",
+     "2",
+     "2026-01-08",
+     "2026-01-10",
+     "2026-01-10",
+     "00000120102",
+     "4.000",
+     "28",
+     "0",
+     "PR222DBBC6",
+     "PH1AF30D12",
+     "A103",
+     "08",
+     null,
+     "150.00",
+     "0.00",
+     "0.00",
+     "0.00",
+     "0.00",
+     null
+    ]
+   ],
+   "total": 59454
+  },
+  "rx_claim_reject": {
+   "columns": [
+    "claim_id",
+    "reject_seq",
+    "reject_code"
+   ],
+   "descriptions": [
+    "Rejected transaction.",
+    "1 = first reject code returned.",
+    "NCPDP reject code."
+   ],
+   "rows": [
+    [
+     "RC100001380",
+     "1",
+     "4W"
+    ],
+    [
+     "RC100001381",
+     "1",
+     "70"
+    ],
+    [
+     "RC100001381",
+     "2",
+     "MR"
+    ],
+    [
+     "RC100001384",
+     "1",
+     "75"
+    ]
+   ],
+   "total": 8911
+  },
+  "dx_claim": {
+   "columns": [
+    "claim_id",
+    "patient_id",
+    "claim_type",
+    "service_from_date",
+    "service_to_date",
+    "place_of_service",
+    "bill_type",
+    "rendering_provider_id",
+    "billing_provider_id",
+    "referring_provider_id",
+    "plan_id",
+    "total_charge_amt"
+   ],
+   "descriptions": [
+    "Medical claim identifier.",
+    "Patient token.",
+    "PROFESSIONAL or INSTITUTIONAL.",
+    "First date of service.",
+    "Last date of service.",
+    "CMS place-of-service code on professional claims: 11 office, 10 telehealth at home.",
+    "Type of bill on institutional claims: 0131 hospital outpatient.",
+    "Provider who performed or administered the service.",
+    "Provider or organization that billed the claim.",
+    "Referring provider, when reported.",
+    "Payer billed. Members with a stand-alone Part D plan bill medical care to Original Medicare.",
+    "Total billed charges."
+   ],
+   "rows": [
+    [
+     "MC100000011",
+     "P83BB8459C37",
+     "PROFESSIONAL",
+     "2025-03-17",
+     "2025-03-17",
+     "11",
+     null,
+     "PRE5E88EE5",
+     "PRE5E88EE5",
+     null,
+     "MCD-WA",
+     "15630.00"
+    ],
+    [
+     "MC100000012",
+     "P83BB8459C37",
+     "PROFESSIONAL",
+     "2025-03-31",
+     "2025-03-31",
+     "11",
+     null,
+     "PRE5E88EE5",
+     "PRE5E88EE5",
+     null,
+     "MCD-WA",
+     "15630.00"
+    ],
+    [
+     "MC100000013",
+     "P83BB8459C37",
+     "PROFESSIONAL",
+     "2025-05-26",
+     "2025-05-26",
+     "11",
+     null,
+     "PRE5E88EE5",
+     "PRE5E88EE5",
+     null,
+     "MCD-WA",
+     "15630.00"
+    ]
+   ],
+   "total": 20369
+  },
+  "dx_claim_diagnosis": {
+   "columns": [
+    "claim_id",
+    "diagnosis_seq",
+    "icd10_code"
+   ],
+   "descriptions": [
+    "Medical claim.",
+    "1 = principal diagnosis.",
+    "ICD-10-CM code."
+   ],
+   "rows": [
+    [
+     "MC100000011",
+     "1",
+     "L400"
+    ],
+    [
+     "MC100000012",
+     "1",
+     "L400"
+    ],
+    [
+     "MC100000013",
+     "1",
+     "L400"
+    ]
+   ],
+   "total": 30251
+  },
+  "dx_claim_line": {
+   "columns": [
+    "claim_id",
+    "line_number",
+    "service_date",
+    "procedure_code",
+    "ndc11",
+    "units",
+    "line_charge_amt"
+   ],
+   "descriptions": [
+    "Medical claim.",
+    "Line number.",
+    "Line date of service.",
+    "CPT or HCPCS code.",
+    "NDC billed with a drug HCPCS code; null otherwise.",
+    "Billed units.",
+    "Billed charge for the line."
+   ],
+   "rows": [
+    [
+     "MC100000011",
+     "1",
+     "2025-03-17",
+     "96365",
+     null,
+     "1.000",
+     "290.00"
+    ],
+    [
+     "MC100000011",
+     "2",
+     "2025-03-17",
+     "J3590",
+     "00000150110",
+     "1.000",
+     "15340.00"
+    ],
+    [
+     "MC100000012",
+     "1",
+     "2025-03-31",
+     "96365",
+     null,
+     "1.000",
+     "290.00"
+    ],
+    [
+     "MC100000012",
+     "2",
+     "2025-03-31",
+     "J3590",
+     "00000150110",
+     "1.000",
+     "15340.00"
+    ],
+    [
+     "MC100000013",
+     "1",
+     "2025-05-26",
+     "96365",
+     null,
+     "1.000",
+     "290.00"
+    ],
+    [
+     "MC100000013",
+     "2",
+     "2025-05-26",
+     "J3590",
+     "00000150110",
+     "1.000",
+     "15340.00"
+    ]
+   ],
+   "total": 24960
+  },
+  "dx_remittance": {
+   "columns": [
+    "remit_id",
+    "claim_id",
+    "plan_id",
+    "paid_date",
+    "claim_status_code",
+    "allowed_amt",
+    "paid_amt",
+    "patient_resp_amt"
+   ],
+   "descriptions": [
+    "Remittance identifier.",
+    "Medical claim paid or denied.",
+    "Paying plan.",
+    "Remittance date.",
+    "X12 claim status: 1 processed as primary, 4 denied.",
+    "Allowed amount.",
+    "Amount paid by the plan.",
+    "Patient responsibility."
+   ],
+   "rows": [
+    [
+     "RM100000010",
+     "MC100000011",
+     "MCD-WA",
+     "2025-04-29",
+     "4",
+     "0.00",
+     "0.00",
+     "0.00"
+    ],
+    [
+     "RM100000011",
+     "MC100000012",
+     "MCD-WA",
+     "2025-05-14",
+     "1",
+     "11003.18",
+     "11003.18",
+     "0.00"
+    ]
+   ],
+   "total": 14181
+  },
+  "dx_remittance_adjustment": {
+   "columns": [
+    "remit_id",
+    "adjustment_seq",
+    "group_code",
+    "carc_code",
+    "adjustment_amt"
+   ],
+   "descriptions": [
+    "Remittance.",
+    "Adjustment order.",
+    "CO contractual obligation, PR patient responsibility.",
+    "Claim adjustment reason code.",
+    "Adjusted amount."
+   ],
+   "rows": [
+    [
+     "RM100000010",
+     "1",
+     "CO",
+     "197",
+     "15630.00"
+    ],
+    [
+     "RM100000011",
+     "1",
+     "CO",
+     "45",
+     "4626.82"
+    ]
+   ],
+   "total": 23476
+  },
+  "patient": {
+   "columns": [
+    "patient_id",
+    "birth_year",
+    "gender",
+    "patient_state",
+    "patient_zip3",
+    "first_activity_date",
+    "last_activity_date",
+    "has_rx_activity",
+    "has_dx_activity",
+    "stable_flag"
+   ],
+   "descriptions": [
+    "De-identified patient token; links pharmacy and medical claims.",
+    "Year of birth.",
+    "F, M, or U.",
+    "Two-letter state of residence.",
+    "First three digits of the residence ZIP code.",
+    "First pharmacy or medical claim observed.",
+    "Last pharmacy or medical claim observed.",
+    "At least one pharmacy claim.",
+    "At least one medical claim.",
+    "Claims observed in both halves of the data window: a visibility proxy for open claims."
+   ],
+   "rows": [
+    [
+     "P83BB8459C37",
+     "1998",
+     "M",
+     "WA",
+     "992",
+     "2023-07-22",
+     "2026-06-14",
+     "true",
+     "true",
+     "true"
+    ],
+    [
+     "P7C34D2BE583",
+     "1983",
+     "M",
+     "FL",
+     "328",
+     "2025-04-19",
+     "2026-06-04",
+     "true",
+     "true",
+     "false"
+    ],
+    [
+     "PC5F718F7995",
+     "1966",
+     "F",
+     "FL",
+     "328",
+     "2023-07-24",
+     "2026-06-16",
+     "true",
+     "true",
+     "true"
+    ],
+    [
+     "P0A3BB91F518",
+     "1973",
+     "F",
+     "TX",
+     "787",
+     "2023-09-03",
+     "2026-06-24",
+     "true",
+     "true",
+     "true"
+    ],
+    [
+     "PF76132170F1",
+     "1990",
+     "F",
+     "TX",
+     "787",
+     "2025-02-13",
+     "2026-05-13",
+     "true",
+     "true",
+     "false"
+    ],
+    [
+     "PE0AAA249406",
+     "1971",
+     "F",
+     "TX",
+     "770",
+     "2023-10-22",
+     "2026-05-12",
+     "false",
+     "true",
+     "true"
+    ]
+   ],
+   "total": 2000
+  },
+  "ref_product": {
+   "columns": [
+    "ndc11",
+    "product_name",
+    "molecule_name",
+    "manufacturer_name",
+    "market",
+    "therapeutic_class",
+    "strength",
+    "dosage_form",
+    "route",
+    "package_quantity",
+    "brand_generic",
+    "specialty_flag",
+    "benefit_type",
+    "launch_date"
+   ],
+   "descriptions": [
+    "11-digit package NDC (synthetic).",
+    "Brand name, or the molecule for generics.",
+    "Active ingredient.",
+    "Labeler.",
+    "Market definition the product rolls up to.",
+    "Mechanism or class within the market.",
+    "Strength as labeled.",
+    "Dosage form.",
+    "Route of administration.",
+    "Billing units per package.",
+    "BRAND or GENERIC.",
+    "Plans require a specialty pharmacy.",
+    "PHARMACY (Rx claims) or MEDICAL (buy-and-bill, Dx claims).",
+    "US launch date; null for old generics."
+   ],
+   "rows": [
+    [
+     "00000120102",
+     "Duvessa",
+     "duvessimab",
+     "Fabrikam Pharma",
+     "Immunology (psoriasis, psoriatic arthritis, atopic dermatitis)",
+     "IL-13 inhibitor",
+     "300 mg/2 mL",
+     "Prefilled pen",
+     "Subcutaneous",
+     "2.000",
+     "BRAND",
+     "true",
+     "PHARMACY",
+     "2021-09-01"
+    ],
+    [
+     "00000130230",
+     "Quellora",
+     "quellacitinib",
+     "Northwind Biologics",
+     "Immunology (psoriasis, psoriatic arthritis, atopic dermatitis)",
+     "TYK2/JAK inhibitor",
+     "30 mg",
+     "Tablet",
+     "Oral",
+     "30.000",
+     "BRAND",
+     "true",
+     "PHARMACY",
+     "2022-06-20"
+    ],
+    [
+     "00000150110",
+     "Velnexa",
+     "velnexumab",
+     "Northwind Biologics",
+     "Immunology (psoriasis, psoriatic arthritis, atopic dermatitis)",
+     "IL-23 inhibitor",
+     "100 mg/10 mL",
+     "Vial",
+     "Intravenous",
+     "1.000",
+     "BRAND",
+     "true",
+     "MEDICAL",
+     "2020-11-02"
+    ],
+    [
+     "00000920180",
+     "triamcinolone",
+     "triamcinolone acetonide",
+     "Generic labeler",
+     "Immunology (psoriasis, psoriatic arthritis, atopic dermatitis)",
+     "Topical corticosteroid",
+     "0.1%",
+     "Cream",
+     "Topical",
+     "80.000",
+     "GENERIC",
+     "false",
+     "PHARMACY",
+     null
+    ],
+    [
+     "00000110101",
+     "Zorvane",
+     "zorvanumab",
+     "Northwind Biologics",
+     "Immunology (psoriasis, psoriatic arthritis, atopic dermatitis)",
+     "IL-17A inhibitor",
+     "150 mg/mL",
+     "Autoinjector",
+     "Subcutaneous",
+     "1.000",
+     "BRAND",
+     "true",
+     "PHARMACY",
+     "2019-04-15"
+    ],
+    [
+     "00000130130",
+     "Quellora",
+     "quellacitinib",
+     "Northwind Biologics",
+     "Immunology (psoriasis, psoriatic arthritis, atopic dermatitis)",
+     "TYK2/JAK inhibitor",
+     "15 mg",
+     "Tablet",
+     "Oral",
+     "30.000",
+     "BRAND",
+     "true",
+     "PHARMACY",
+     "2022-06-20"
+    ]
+   ],
+   "total": 12
+  },
+  "ref_plan": {
+   "columns": [
+    "plan_id",
+    "plan_name",
+    "payer_name",
+    "pbm_name",
+    "payment_type",
+    "plan_type",
+    "program_type_code",
+    "plan_state"
+   ],
+   "descriptions": [
+    "Plan identifier.",
+    "Plan name.",
+    "Payer or program sponsor.",
+    "Pharmacy benefit manager or claims processor.",
+    "COMMERCIAL, MEDICARE, MEDICAID_FFS, MANAGED_MEDICAID, CASH, or ASSISTANCE.",
+    "PPO, HMO, HDHP, PDP, MAPD, FFS, MANAGED_MEDICAID, CASH, COPAY_CARD, or FREE_PRODUCT.",
+    "NCPDP other payer program type: 3 commercial, 14 Part D PDP, 13 Medicare Advantage, 16 Part B, 1 Medicaid, 11 Medicaid managed care, 15 cash, 6 manufacturer copay program, 7 manufacturer free product.",
+    "State for state Medicaid plans; null for national plans."
+   ],
+   "rows": [
+    [
+     "C002",
+     "Aldermoor Select HMO",
+     "Aldermoor Health",
+     "Corvex Rx",
+     "COMMERCIAL",
+     "HMO",
+     "3",
+     null
+    ],
+    [
+     "A103",
+     "Duvessa Copay Program",
+     "Fabrikam Pharma",
+     "Copay program processor",
+     "ASSISTANCE",
+     "COPAY_CARD",
+     "6",
+     null
+    ],
+    [
+     "MCD-WA",
+     "WA Medicaid fee-for-service",
+     "WA Medicaid agency",
+     "State fiscal agent",
+     "MEDICAID_FFS",
+     "FFS",
+     "1",
+     "WA"
+    ],
+    [
+     "C001",
+     "Aldermoor Choice PPO",
+     "Aldermoor Health",
+     "Corvex Rx",
+     "COMMERCIAL",
+     "PPO",
+     "3",
+     null
+    ],
+    [
+     "C003",
+     "Brightvale Employer Choice",
+     "Brightvale Health",
+     "Tellwind Pharmacy Benefits",
+     "COMMERCIAL",
+     "PPO",
+     "3",
+     null
+    ],
+    [
+     "C004",
+     "Kestrelton National HDHP",
+     "Kestrelton Insurance",
+     "Corvex Rx",
+     "COMMERCIAL",
+     "HDHP",
+     "3",
+     null
+    ]
+   ],
+   "total": 32
+  },
+  "ref_provider": {
+   "columns": [
+    "provider_id",
+    "provider_type",
+    "specialty",
+    "provider_state",
+    "provider_zip5"
+   ],
+   "descriptions": [
+    "De-identified provider token.",
+    "INDIVIDUAL or ORGANIZATION.",
+    "Primary specialty.",
+    "Practice state.",
+    "Practice ZIP code."
+   ],
+   "rows": [
+    [
+     "PR222DBBC6",
+     "INDIVIDUAL",
+     "Dermatology",
+     "FL",
+     "33199"
+    ],
+    [
+     "PRE5E88EE5",
+     "INDIVIDUAL",
+     "Dermatology",
+     "WA",
+     "98086"
+    ],
+    [
+     "PRED630D0A",
+     "INDIVIDUAL",
+     "Dermatology",
+     "CA",
+     "95815"
+    ],
+    [
+     "PR2E79DDBA",
+     "INDIVIDUAL",
+     "Dermatology",
+     "CA",
+     "90095"
+    ],
+    [
+     "PRDD0723A1",
+     "INDIVIDUAL",
+     "Dermatology",
+     "CA",
+     "94132"
+    ],
+    [
+     "PR283EFD21",
+     "INDIVIDUAL",
+     "Dermatology",
+     "CA",
+     "90018"
+    ]
+   ],
+   "total": 225
+  },
+  "ref_pharmacy": {
+   "columns": [
+    "pharmacy_id",
+    "pharmacy_service_type",
+    "pharmacy_channel",
+    "pharmacy_state",
+    "pharmacy_zip3"
+   ],
+   "descriptions": [
+    "De-identified pharmacy token.",
+    "NCPDP pharmacy service type: 1 community/retail, 6 mail order, 8 specialty.",
+    "RETAIL_CHAIN, RETAIL_INDEPENDENT, MAIL_ORDER, or SPECIALTY.",
+    "Pharmacy state.",
+    "Pharmacy ZIP3."
+   ],
+   "rows": [
+    [
+     "PH0A07D7BD",
+     "1",
+     "RETAIL_INDEPENDENT",
+     "FL",
+     "328"
+    ],
+    [
+     "PH1AF30D12",
+     "8",
+     "SPECIALTY",
+     "IL",
+     "625"
+    ],
+    [
+     "PHEC767BF7",
+     "1",
+     "RETAIL_CHAIN",
+     "CA",
+     "941"
+    ],
+    [
+     "PHAFB3D75D",
+     "1",
+     "RETAIL_CHAIN",
+     "CA",
+     "900"
+    ],
+    [
+     "PH547AEAA5",
+     "1",
+     "RETAIL_CHAIN",
+     "CA",
+     "941"
+    ],
+    [
+     "PH5F46694D",
+     "1",
+     "RETAIL_INDEPENDENT",
+     "CA",
+     "958"
+    ]
+   ],
+   "total": 81
+  },
+  "ref_reject_code": {
+   "columns": [
+    "reject_code",
+    "reject_description",
+    "reject_group"
+   ],
+   "descriptions": [
+    "NCPDP reject code (511-FB).",
+    "Short description.",
+    "PRODUCT_NOT_COVERED, PRIOR_AUTHORIZATION, REFILL_RESTRICTION, DISTRIBUTION_LIMITATION, PLAN_LIMITATION, ELIGIBILITY, CLINICAL, or ADMINISTRATIVE."
+   ],
+   "rows": [
+    [
+     "70",
+     "Product or service not covered (plan exclusion)",
+     "PRODUCT_NOT_COVERED"
+    ],
+    [
+     "MR",
+     "Product not on formulary",
+     "PRODUCT_NOT_COVERED"
+    ],
+    [
+     "75",
+     "Prior authorization required",
+     "PRIOR_AUTHORIZATION"
+    ],
+    [
+     "4W",
+     "Must fill through specialty pharmacy",
+     "DISTRIBUTION_LIMITATION"
+    ],
+    [
+     "3Y",
+     "Prior authorization denied",
+     "PRIOR_AUTHORIZATION"
+    ],
+    [
+     "608",
+     "Step therapy: alternate drug required first",
+     "PRIOR_AUTHORIZATION"
+    ]
+   ],
+   "total": 17
+  },
+  "ref_diagnosis": {
+   "columns": [
+    "icd10_code",
+    "icd10_description",
+    "condition_group"
+   ],
+   "descriptions": [
+    "ICD-10-CM code as billed, without the dot.",
+    "Short description.",
+    "PSORIASIS, PSORIATIC_ARTHRITIS, ATOPIC_DERMATITIS, COMORBIDITY, or SCREENING."
+   ],
+   "rows": [
+    [
+     "L400",
+     "Psoriasis vulgaris",
+     "PSORIASIS"
+    ],
+    [
+     "L4050",
+     "Arthropathic psoriasis, unspecified",
+     "PSORIATIC_ARTHRITIS"
+    ],
+    [
+     "L4059",
+     "Other psoriatic arthropathy",
+     "PSORIATIC_ARTHRITIS"
+    ],
+    [
+     "L209",
+     "Atopic dermatitis, unspecified",
+     "ATOPIC_DERMATITIS"
+    ],
+    [
+     "L2089",
+     "Other atopic dermatitis",
+     "ATOPIC_DERMATITIS"
+    ],
+    [
+     "I10",
+     "Essential hypertension",
+     "COMORBIDITY"
+    ]
+   ],
+   "total": 10
+  },
+  "ref_procedure": {
+   "columns": [
+    "procedure_code",
+    "code_system",
+    "procedure_description"
+   ],
+   "descriptions": [
+    "CPT or HCPCS code.",
+    "CPT or HCPCS.",
+    "Short description."
+   ],
+   "rows": [
+    [
+     "96365",
+     "CPT",
+     "IV infusion, therapeutic, first hour"
+    ],
+    [
+     "J3590",
+     "HCPCS",
+     "Unclassified biologics (billed with NDC)"
+    ],
+    [
+     "99204",
+     "CPT",
+     "New patient office visit, moderate complexity"
+    ],
+    [
+     "99213",
+     "CPT",
+     "Established patient office visit, low complexity"
+    ],
+    [
+     "99214",
+     "CPT",
+     "Established patient office visit, moderate complexity"
+    ],
+    [
+     "86480",
+     "CPT",
+     "Tuberculosis test, interferon-gamma release assay"
+    ]
+   ],
+   "total": 7
+  },
+  "ref_adjustment_reason": {
+   "columns": [
+    "carc_code",
+    "carc_description",
+    "adjustment_category"
+   ],
+   "descriptions": [
+    "Claim adjustment reason code.",
+    "Short description.",
+    "PATIENT_COST_SHARE, CONTRACTUAL, AUTHORIZATION, COVERAGE, or ADMINISTRATIVE."
+   ],
+   "rows": [
+    [
+     "45",
+     "Charge above the contracted or allowed amount",
+     "CONTRACTUAL"
+    ],
+    [
+     "197",
+     "Prior authorization absent",
+     "AUTHORIZATION"
+    ],
+    [
+     "1",
+     "Deductible",
+     "PATIENT_COST_SHARE"
+    ],
+    [
+     "2",
+     "Coinsurance",
+     "PATIENT_COST_SHARE"
+    ],
+    [
+     "3",
+     "Copay",
+     "PATIENT_COST_SHARE"
+    ],
+    [
+     "50",
+     "Not deemed medically necessary by the payer",
+     "COVERAGE"
+    ]
+   ],
+   "total": 7
+  },
+  "rx_fill": {
+   "columns": [
+    "rx_id",
+    "fill_number",
+    "patient_id",
+    "ndc11",
+    "prescriber_id",
+    "primary_plan_id",
+    "final_payment_type",
+    "first_submit_date",
+    "final_date",
+    "initial_status",
+    "final_status",
+    "reject_count",
+    "first_reject_code",
+    "days_to_final",
+    "total_claim_cost",
+    "oop_before_buydown",
+    "buydown_amt",
+    "oop_after_buydown",
+    "copay_card_flag"
+   ],
+   "descriptions": [
+    "Prescription token.",
+    "Fill number.",
+    "Patient token.",
+    "Product.",
+    "Prescriber token.",
+    "Primary plan on the final transaction.",
+    "Payment type of the plan that settled the fill; ASSISTANCE means free product.",
+    "First submission.",
+    "Date of the transaction that settled the fill.",
+    "Status of the first submission: PAID or REJECTED.",
+    "Status after the look-forward: PAID, REJECTED, or REVERSED (abandoned at the pharmacy).",
+    "Rejected submissions in the fill.",
+    "First reject code returned, if any.",
+    "Days from first submission to the settling transaction.",
+    "Plan pay plus patient pay before any buy-down; null when never paid.",
+    "Patient pay after the primary plan; null when never paid.",
+    "Amount a copay program paid as secondary.",
+    "Patient out-of-pocket after all payers; null when never paid.",
+    "A manufacturer copay program paid as secondary."
+   ],
+   "rows": [
+    [
+     "RXB8C5B25DA5",
+     "0",
+     "P7C34D2BE583",
+     "00000120102",
+     "PR222DBBC6",
+     "C002",
+     "COMMERCIAL",
+     "2026-01-10",
+     "2026-01-10",
+     "REJECTED",
+     "PAID",
+     "1",
+     "75",
+     "0",
+     "3900.00",
+     "150.00",
+     "150.00",
+     "0.00",
+     "true"
+    ],
+    [
+     "RX16C7148772",
+     "0",
+     "P7C34D2BE583",
+     "00000130230",
+     "PR222DBBC6",
+     "C002",
+     "COMMERCIAL",
+     "2025-12-05",
+     "2026-01-01",
+     "REJECTED",
+     "REVERSED",
+     "2",
+     "4W",
+     "27",
+     "6100.00",
+     "150.00",
+     "0.00",
+     "150.00",
+     "false"
+    ],
+    [
+     "RX12773BD985",
+     "0",
+     "P7C34D2BE583",
+     "00000920180",
+     "PR222DBBC6",
+     "C002",
+     "COMMERCIAL",
+     "2025-05-11",
+     "2025-05-11",
+     "REJECTED",
+     "PAID",
+     "1",
+     "M6",
+     "0",
+     "42.00",
+     "5.00",
+     "0.00",
+     "5.00",
+     "false"
+    ],
+    [
+     "RX12773BD985",
+     "1",
+     "P7C34D2BE583",
+     "00000920180",
+     "PR222DBBC6",
+     "C002",
+     "COMMERCIAL",
+     "2025-08-09",
+     "2025-08-09",
+     "PAID",
+     "PAID",
+     "0",
+     null,
+     "0",
+     "42.00",
+     "5.00",
+     "0.00",
+     "5.00",
+     "false"
+    ],
+    [
+     "RXB8C5B25DA5",
+     "1",
+     "P7C34D2BE583",
+     "00000120102",
+     "PR222DBBC6",
+     "C002",
+     "COMMERCIAL",
+     "2026-02-07",
+     "2026-02-07",
+     "PAID",
+     "PAID",
+     "0",
+     null,
+     "0",
+     "3900.00",
+     "150.00",
+     "150.00",
+     "0.00",
+     "true"
+    ],
+    [
+     "RXB8C5B25DA5",
+     "2",
+     "P7C34D2BE583",
+     "00000120102",
+     "PR222DBBC6",
+     "C002",
+     "COMMERCIAL",
+     "2026-03-07",
+     "2026-03-07",
+     "PAID",
+     "PAID",
+     "0",
+     null,
+     "0",
+     "3900.00",
+     "150.00",
+     "150.00",
+     "0.00",
+     "true"
+    ]
+   ],
+   "total": 47205
+  },
+  "therapy_episode": {
+   "columns": [
+    "episode_id",
+    "patient_id",
+    "market",
+    "molecule_name",
+    "benefit_type",
+    "line_of_therapy",
+    "source_of_business",
+    "episode_start_date",
+    "episode_end_date",
+    "dispensed_fills",
+    "days_on_therapy",
+    "discontinued"
+   ],
+   "descriptions": [
+    "Episode identifier.",
+    "Patient token.",
+    "Market definition.",
+    "Molecule.",
+    "PHARMACY or MEDICAL.",
+    "Advanced lines in order within the market; 0 for conventional and maintenance generics.",
+    "NEW_TO_MARKET, SWITCH, RESTART, or CONVENTIONAL.",
+    "First fill or administration.",
+    "Last fill or administration plus its days supply, capped at the data end date.",
+    "Dispensed fills or administrations.",
+    "Days from start to end.",
+    "Supply ran out more than 60 days before the data end date."
+   ],
+   "rows": [
+    [
+     "EP100002190",
+     "P7C34D2BE583",
+     "Immunology (psoriasis, psoriatic arthritis, atopic dermatitis)",
+     "triamcinolone acetonide",
+     "PHARMACY",
+     "0",
+     "CONVENTIONAL",
+     "2025-05-11",
+     "2025-11-06",
+     "2",
+     "180",
+     "true"
+    ],
+    [
+     "EP100002191",
+     "P7C34D2BE583",
+     "Immunology (psoriasis, psoriatic arthritis, atopic dermatitis)",
+     "duvessimab",
+     "PHARMACY",
+     "1",
+     "NEW_TO_MARKET",
+     "2026-01-10",
+     "2026-06-30",
+     "6",
+     "172",
+     "false"
+    ],
+    [
+     "EP100002304",
+     "P83BB8459C37",
+     "Cardiovascular",
+     "lisinopril",
+     "PHARMACY",
+     "0",
+     "CONVENTIONAL",
+     "2023-09-06",
+     "2026-06-30",
+     "12",
+     "1029",
+     "false"
+    ],
+    [
+     "EP100002305",
+     "P83BB8459C37",
+     "Immunology (psoriasis, psoriatic arthritis, atopic dermatitis)",
+     "methotrexate",
+     "PHARMACY",
+     "0",
+     "CONVENTIONAL",
+     "2024-12-14",
+     "2025-03-07",
+     "1",
+     "84",
+     "true"
+    ],
+    [
+     "EP100002306",
+     "P83BB8459C37",
+     "Immunology (psoriasis, psoriatic arthritis, atopic dermatitis)",
+     "velnexumab",
+     "MEDICAL",
+     "1",
+     "NEW_TO_MARKET",
+     "2025-03-31",
+     "2026-06-30",
+     "8",
+     "457",
+     "false"
+    ],
+    [
+     "EP100000001",
+     "P002E61EDF96",
+     "Diabetes",
+     "metformin",
+     "PHARMACY",
+     "0",
+     "CONVENTIONAL",
+     "2023-08-12",
+     "2026-06-30",
+     "32",
+     "1054",
+     "false"
+    ]
+   ],
+   "total": 4432
+  }
+ },
+ "totals": {
+  "tables": 18,
+  "edges": 25
+ }
+};
