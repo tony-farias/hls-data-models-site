@@ -72,17 +72,6 @@
   .app-tour { max-width: 1100px; margin: 18px 40px 0; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow: hidden; }
   .app-tour img { display: block; width: 100%; height: auto; background: var(--bg); }
   .app-tour figcaption { padding: 9px 14px; font-size: 12.5px; color: var(--ink-2); border-top: 1px solid var(--line); }
-  .samples { margin: 0 20px 22px; }
-  .samples-head { font-size: 12.5px; font-weight: 700; color: var(--ink-2); margin: 2px 0 8px; }
-  .samples-head span { font-weight: 400; color: var(--ink-3); }
-  details.sample { border: 1px solid var(--line); border-radius: 9px; background: var(--surface); margin-bottom: 8px; }
-  details.sample summary { cursor: pointer; padding: 8px 12px; font-size: 13px; }
-  details.sample summary .hint { color: var(--ink-3); font-size: 12px; margin-left: 6px; }
-  .sample-scroll { overflow-x: auto; border-top: 1px solid var(--line); }
-  .sample-scroll table { border-collapse: collapse; font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 11.5px; white-space: nowrap; }
-  .sample-scroll th, .sample-scroll td { padding: 5px 10px; border-bottom: 1px solid var(--line); text-align: left; }
-  .sample-scroll th { background: var(--bg); color: var(--ink-2); font-weight: 700; cursor: help; }
-  .sample-scroll .null { color: var(--ink-3); font-style: italic; }
   .notes-body { padding: 4px 22px 18px; font-size: 13.5px; line-height: 1.6; max-width: 1120px; }
   .notes-body .lede { font-size: 14px; color: var(--ink-2); }
   .notes-body h3 { font-size: 14px; margin: 18px 0 4px; }
@@ -650,7 +639,6 @@ function buildTab(model, isFirst) {
       '<div class="dbody" id="' + bodyId + '" role="region" aria-label="' + d.name + ' diagram" hidden>' +
         '<div class="erd-hint">Every box is a table.' + ((model.ucBase && model.ucBase !== "#") ? ' Click any box to open its reference docs.' : '') + '</div>' +
         '<div class="diagram-wrap"><div class="placeholder">Rendering…</div></div>' +
-        (model.data.samples ? '<div class="samples"></div>' : '') +
       "</div>";
     sec.querySelector("button.genie").addEventListener("click", () =>
       window.open(SKILL_FOR(model), "_blank", "noopener"));
@@ -707,29 +695,11 @@ function activateTab(tabId) {
   }
 }
 
-// synthetic sample rows under a domain's diagram, for models that ship a samples map
-function renderSamples(sec) {
-  const S = sec._model.data.samples, wrap = sec.querySelector(".samples");
-  if (!S || !wrap) return;
-  const esc = (v) => String(v).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  const d = sec._model.data.domains[sec._domainIndex];
-  wrap.innerHTML = '<div class="samples-head">Synthetic sample rows <span>— fictional data; hover a column for its definition</span></div>' +
-    d.tables.filter((t) => S[t]).map((t, i) => {
-      const s = S[t];
-      return '<details class="sample"' + (i === 0 ? ' open' : '') + '><summary><code>' + t + '</code><span class="hint">' +
-        s.rows.length + ' of ' + s.total.toLocaleString() + ' rows</span></summary><div class="sample-scroll"><table><thead><tr>' +
-        s.columns.map((c, j) => '<th title="' + esc(s.descriptions[j]) + '">' + c + '</th>').join('') + '</tr></thead><tbody>' +
-        s.rows.map((r) => '<tr>' + r.map((v) => '<td>' + (v === null ? '<span class="null">null</span>' : esc(v)) + '</td>').join('') + '</tr>').join('') +
-        '</tbody></table></div></details>';
-    }).join('');
-}
-
 // domain diagrams render lazily — only on first expand (collapsed by default)
 function renderDomainDiagram(sec) {
   if (sec._rendered) return;
   sec._rendered = true;
   renderMermaidInto(sec.querySelector(".diagram-wrap"), sec._model.data.domains[sec._domainIndex].mermaid, sec._model);
-  renderSamples(sec);
 }
 function setSectionOpen(sec, open) {
   sec.classList.toggle("open", open);
