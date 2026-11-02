@@ -364,10 +364,13 @@ BENEFITS = {  # commercial designs: (copay, amount) or (coins, rate) per tier
     "HDHP": dict(deductible=3200.0, ded_on_generic=True, generic=("coins", 0.2), brand=("coins", 0.2),
                  specialty=("coins", 0.2), oop_max=7000.0),
 }
-# Medicare Part D standard benefit: deductible, annual out-of-pocket threshold, low-income subsidy (LIS) copays
+# Medicare Part D standard benefit from the CMS CY2024-CY2026 rate announcements: deductible, annual
+# out-of-pocket threshold, and full low-income subsidy (LIS) copays (generic, other). In 2023 the
+# catastrophic phase charged the greater of 5% or a minimum copay; from 2024 it charges nothing.
 PART_D_DEDUCTIBLE = {2023: 505.0, 2024: 545.0, 2025: 590.0, 2026: 615.0}
 PART_D_OOP_CAP = {2023: 7400.0, 2024: 8000.0, 2025: 2000.0, 2026: 2100.0}
-LIS_COPAY = {2023: (4.15, 10.35), 2024: (4.50, 11.20), 2025: (4.90, 12.15)}
+LIS_COPAY = {2023: (4.15, 10.35), 2024: (4.50, 11.20), 2025: (4.90, 12.15), 2026: (5.10, 12.65)}
+CATASTROPHIC_2023 = (4.15, 10.35)
 STATES = {  # state: (patient weight, ZIP3s)
     "CA": (.14, ["900", "941", "958"]), "TX": (.11, ["750", "770", "787"]), "FL": (.10, ["331", "336", "328"]),
     "NY": (.09, ["100", "112", "146"]), "PA": (.06, ["191", "152", "171"]), "IL": (.06, ["606", "617", "625"]),
@@ -996,7 +999,10 @@ class Generator:
         acc = p.acc[(year, coverage["plan_id"])]
         room = max(0.0, design["oop_max"] - acc["oop"])
         if room <= 0:
-            c = round(gross * design.get("catastrophic", 0.0), 2)
+            c = gross * design.get("catastrophic", 0.0)
+            if payment == "MEDICARE" and year < 2024:
+                c = max(c, CATASTROPHIC_2023[0 if generic else 1])
+            c = round(min(c, gross), 2)
             return c, 0.0, 0.0, c, "4" if payment == "MEDICARE" else None
         ded = 0.0
         if design["deductible"] and (tier != "generic" or design["ded_on_generic"]):

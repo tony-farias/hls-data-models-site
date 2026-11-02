@@ -83,6 +83,16 @@
   .sample-scroll th, .sample-scroll td { padding: 5px 10px; border-bottom: 1px solid var(--line); text-align: left; }
   .sample-scroll th { background: var(--bg); color: var(--ink-2); font-weight: 700; cursor: help; }
   .sample-scroll .null { color: var(--ink-3); font-style: italic; }
+  .notes-body { padding: 4px 22px 18px; font-size: 13.5px; line-height: 1.6; max-width: 1120px; }
+  .notes-body .lede { font-size: 14px; color: var(--ink-2); }
+  .notes-body h3 { font-size: 14px; margin: 18px 0 4px; }
+  .notes-body p, .notes-body ul, .notes-body ol { margin: 6px 0; }
+  .notes-body ul, .notes-body ol { padding-left: 20px; }
+  .notes-body li { margin: 4px 0; }
+  .notes-body a { color: var(--accent); }
+  .notes-body sup { font-size: 10.5px; }
+  .notes-body table { border-collapse: collapse; font-size: 12.5px; margin: 8px 0; }
+  .notes-body th, .notes-body td { border-bottom: 1px solid var(--line); padding: 6px 16px 6px 0; text-align: left; vertical-align: top; }
   .erd-jump-wrap { margin-left: auto; align-self: center; padding-bottom: 8px; display: inline-flex; align-items: center; gap: 8px; }
   .erd-jump-wrap label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-3); }
   #erd-jump {
@@ -541,6 +551,8 @@ function buildTab(model, isFirst) {
     '<div class="legend">' +
       '<span class="item"><span class="swatch" style="background: oklch(0.80 0.10 300);"></span> Schema table' + ((model.ucBase && model.ucBase !== "#") ? ', click to open its reference docs' : '') + '</span>' +
     '</div>' +
+    (D.notes ? '<details class="idx notes" open><summary>' + D.notes.title + '</summary>' +
+      '<div class="notes-body">' + D.notes.html + '</div></details>' : '') +
     '<details class="idx"><summary>All tables <span class="hint">— expand for the full index</span></summary>' +
       '<div class="index-grid"></div></details>' +
     '<div class="domains"></div>' +

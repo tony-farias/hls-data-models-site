@@ -175,12 +175,25 @@ Studies that describe the data and its claim lifecycle:
 - Gibbons et al., *JAMA Netw Open* 2026, [doi:10.1001/jamanetworkopen.2026.2201](https://doi.org/10.1001/jamanetworkopen.2026.2201): coupon flag, buy-down, and out-of-pocket before and after.
 - Gilbert et al., *Pulm Ther* 2021, [doi:10.1007/s41030-021-00147-8](https://doi.org/10.1007/s41030-021-00147-8), and LaMountain et al., *Health Aff Sch* 2024, [doi:10.1093/haschl/qxae090](https://doi.org/10.1093/haschl/qxae090): sourcing and coverage.
 
-Standards:
+Standards and benefit parameters:
 - NCPDP reject, DAW, other coverage, program type, and benefit stage values were checked
   against the public-domain VA VistA claims engine tables
   ([WorldVistA/VistA-M](https://github.com/WorldVistA/VistA-M)).
 - X12 claim adjustment reason codes are from [x12.org](https://x12.org/codes/claim-adjustment-reason-codes).
+- Medicare Part D deductibles, out-of-pocket thresholds, and low-income subsidy copays for 2023–2026
+  are from the CMS rate announcements for
+  [CY2024](https://www.cms.gov/files/document/2024-announcement-pdf.pdf),
+  [CY2025](https://www.cms.gov/files/document/2025-announcement.pdf), and
+  [CY2026](https://www.cms.gov/files/document/2026-announcement.pdf).
 - Descriptions in this dataset are paraphrased.
+
+## Known simplifications
+
+- The dataset covers one immunology market plus maintenance generics, and every pharmacy reports.
+  Real open claims miss some pharmacies, which is why `patient.stable_flag` exists.
+- There is no enrollment file. BIN, PCN, ingredient cost, and dispensing fee fields are left out,
+  and there are no inpatient claims.
+- Reversals of the last fills in the window can post a few days after the data end date.
 
 IQVIA, LAAD, and eLAAD are trademarks of IQVIA Inc. This project is not affiliated with or
 endorsed by IQVIA.
