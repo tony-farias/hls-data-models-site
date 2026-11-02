@@ -60,12 +60,32 @@ The simulation includes:
 - Buy-and-bill infusions whose missing authorizations show up only as remittance denials
   (CARC 197).
 
-The defaults (seed 42, 2,000 patients) land close to published LAAD-based figures:
+### Calibration
+
+The simulation's probabilities were tuned until the data reproduces access patterns that studies
+measured in real LAAD and claim-lifecycle data:
+
+1. **Pick published targets.** Four measures that sources define precisely: new-to-brand
+   outcomes, abandonment by out-of-pocket cost, prior authorization (PA) processing, and first
+   reject reasons on branded starts.
+2. **Measure them the same way.** A calibration script recomputes each measure with the source's
+   definition. For example, a fill is abandoned only when the plan approved it and the pharmacy
+   then reversed it.
+3. **Use stated rates directly, then tune the rest.** The abandonment curve and the share of PA
+   fills that need more than one review come straight from the sources. Other parameters were
+   adjusted over four rounds: first-review PA approval (58% to 52%), same-day PA settlement,
+   how often prescribers pick a drug the plan excludes, how often specialty prescriptions go to a
+   retail pharmacy first (15% to 5%), and administrative rejects on new starts (6% to 10%).
+4. **Check rules that must always hold.** No Part D patient pays past the out-of-pocket cap, no
+   copay program pays behind Medicare or Medicaid, and every key and reversal links up.
+
+Results with the defaults (seed 42, 2,000 patients). Across seeds 1, 7, 42, 99, and 2026, each
+measure stays within a 5-point range.
 
 | Measure | Generator | Published |
 |---|---|---|
 | New-to-brand fills that end paid / rejected / abandoned | 38% / 49% / 13% | 35% / 49% / 17% for first-year prescriptions of 2020–2024 launches (IQVIA Institute) |
-| Branded abandonment at under $20 and at $250 and up | 9–11% / 50–54% | about 10–15% / near 60% (IQVIA) |
+| Abandonment of approved branded new starts under $20 and at $250 and up | 11% / 54% | about 10–15% / near 60% (IQVIA) |
 | Fills with a PA reject that are eventually approved | 53% | 54% (Wang et al., 2026) |
 | Of those, settled the same day / with several PA reviews | 30% / 58% | 35% / 59% (Wang et al., 2026) |
 | First reject on branded starts: PA or step / not covered / administrative / specialty network | 65% / 16% / 12% / 5% | 59% / 24% / 13% / 3% for PCSK9 inhibitors (O'Neil et al., 2022) |
